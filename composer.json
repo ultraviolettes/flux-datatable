@@ -70,7 +70,7 @@
             "type": "composer",
             "url": "https://composer.fluxui.dev"
         }
-    }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true
 }
