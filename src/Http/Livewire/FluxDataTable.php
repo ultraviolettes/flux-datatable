@@ -22,12 +22,18 @@ class FluxDataTable extends Component
     public string $sortBy = '';
 
     public string $sortDirection = 'asc';
-    public int    $perPage       = 10;
-    public array  $actions       = [];
-    public array  $bulkActions   = [];
-    public array  $selected      = [];
-    public bool   $selectAll     = false;
-    public string $viewMode      = 'table';
+
+    public int $perPage = 10;
+
+    public array $actions = [];
+
+    public array $bulkActions = [];
+
+    public array $selected = [];
+
+    public bool $selectAll = false;
+
+    public string $viewMode = 'table';
 
     protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage', 'viewMode'];
 

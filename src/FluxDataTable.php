@@ -16,6 +16,7 @@ class FluxDataTable
     protected array $actions = [];
 
     protected array $bulkActions = [];
+
     protected string $viewMode = 'table';
 
     public function __construct()
@@ -91,7 +92,7 @@ class FluxDataTable
     /**
      * Set the view mode for the data table.
      *
-     * @param string $mode The view mode ('table' or 'card')
+     * @param  string  $mode  The view mode ('table' or 'card')
      * @return $this
      */
     public function viewMode(string $mode): self
@@ -99,6 +100,7 @@ class FluxDataTable
         if (in_array($mode, ['table', 'card'])) {
             $this->viewMode = $mode;
         }
+
         return $this;
     }
 
