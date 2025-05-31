@@ -19,6 +19,9 @@ Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 - ✅ **Fully responsive & accessible**
 - ✅ **Flux UI integration** with beautiful, consistent styling
 - ✅ **Config-driven components** with fallback options
+- ✅ **View mode switching** between table and card views
+- ✅ **Filter modal** with customizable filters
+- ✅ **Search input** with live updates
 
 ---
 
@@ -157,6 +160,16 @@ FluxDataTable::columns([
         }
     ],
     [
+        'label' => 'Role', 
+        'field' => 'role',
+        'sortable' => false,
+        'searchable' => false,
+        'render' => '<flux:badge size="lg" color="sky" variant="pill">
+            <div class="mr-2 h-2 w-2 rounded-full bg-blue-500"></div>
+            <span class="text-black">Admin</span>
+        </flux:badge>'
+    ],
+    [
         'label' => 'Actions', 
         'field' => null,
         'sortable' => false,
@@ -193,6 +206,51 @@ If you prefer to use the Livewire component directly:
     :data="App\Models\User::query()"
     :perPageOptions="[10, 25, 50, 100]"
 />
+```
+
+### View Mode Switching
+
+The FluxDataTable component now supports switching between table and card views:
+
+```php
+// In your Livewire component or controller
+$table = FluxDataTable::columns([
+    // your columns
+])->data(User::query());
+
+// Set the default view mode (optional, defaults to 'table')
+$table->viewMode('card');
+```
+
+Users can switch between views using the built-in view mode buttons. The current view mode is preserved in the URL query string.
+
+### Filter Modal
+
+The FluxDataTable component includes a filter modal that can be customized:
+
+```blade
+<!-- The filter modal is included by default in the table template -->
+<!-- You can customize the filter modal content in your published views -->
+```
+
+### Search Functionality
+
+The search functionality is now enhanced with a dedicated search input:
+
+```php
+// The search input is included by default in the table template
+// The search property is automatically bound to the input
+```
+
+You can customize the search behavior in your Livewire component:
+
+```php
+// In your Livewire component
+public function updatingSearch()
+{
+    // Custom logic when search is updated
+    $this->resetPage();
+}
 ```
 
 ## 🛠️ Testing

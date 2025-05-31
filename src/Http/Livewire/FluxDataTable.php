@@ -22,10 +22,11 @@ class FluxDataTable extends Component
     public array  $bulkActions   = [];
     public array  $selected      = [];
     public bool   $selectAll     = false;
+    public string $viewMode      = 'table';
 
-    protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage'];
+    protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage', 'viewMode'];
 
-    public function mount(array $columns, $data, array $perPageOptions = [], array $actions = [], array $bulkActions = [])
+    public function mount(array $columns, $data, array $perPageOptions = [], array $actions = [], array $bulkActions = [], string $viewMode = 'table')
     {
         $this->columns = $columns;
         $this->data    = $data;
@@ -33,6 +34,7 @@ class FluxDataTable extends Component
         $this->perPage = $this->perPageOptions[0] ?? 10;
         $this->actions = $actions;
         $this->bulkActions = $bulkActions;
+        $this->viewMode = $viewMode;
     }
 
     public function sort(string $column): void
@@ -93,6 +95,13 @@ class FluxDataTable extends Component
             if (count($this->selected) === count($this->getRecordIds())) {
                 $this->selectAll = true;
             }
+        }
+    }
+
+    public function setViewMode(string $mode): void
+    {
+        if (in_array($mode, ['table', 'card'])) {
+            $this->viewMode = $mode;
         }
     }
 
