@@ -8,9 +8,13 @@ use Illuminate\Support\Collection;
 class FluxDataTable
 {
     protected array $columns = [];
+
     protected $data;
+
     protected array $perPageOptions;
+
     protected array $actions = [];
+
     protected array $bulkActions = [];
     protected string $viewMode = 'table';
 
@@ -22,60 +26,65 @@ class FluxDataTable
     /**
      * Set the columns for the data table.
      *
-     * @param array $columns Array of column definitions with 'field' and 'label' keys
+     * @param  array  $columns  Array of column definitions with 'field' and 'label' keys
      * @return $this
      */
     public function columns(array $columns): self
     {
         $this->columns = $columns;
+
         return $this;
     }
 
     /**
      * Set the data source for the data table.
      *
-     * @param mixed $data Collection, array, or Eloquent Builder
+     * @param  mixed  $data  Collection, array, or Eloquent Builder
      * @return $this
      */
     public function data($data): self
     {
         $this->data = $data;
+
         return $this;
     }
 
     /**
      * Set the per-page options for pagination.
      *
-     * @param array $options Array of integers representing page size options
+     * @param  array  $options  Array of integers representing page size options
      * @return $this
      */
     public function perPageOptions(array $options): self
     {
         $this->perPageOptions = $options;
+
         return $this;
     }
 
     /**
      * Set the actions for the data table.
      *
-     * @param array $actions Array of actions with name as key and callback as value
+     * @param  array  $actions  Array of actions with name as key and callback as value
      * @return $this
      */
     public function actions(array $actions): self
     {
         $this->actions = $actions;
+
         return $this;
     }
 
     /**
      * Set the bulk actions for the data table.
      *
-     * @param array $actions Array of bulk actions with name as key and callback as value
+     * @param  array  $actions  Array of bulk actions with name as key and callback as value
      * @return $this
      */
     public function bulkActions(array $actions): self
     {
         $this->bulkActions = $actions;
+
         return $this;
     }
 
@@ -112,8 +121,6 @@ class FluxDataTable
 
     /**
      * Convert the data table to HTML.
-     *
-     * @return string
      */
     public function toHtml(): string
     {
@@ -122,8 +129,6 @@ class FluxDataTable
 
     /**
      * Magic method to convert the data table to a string.
-     *
-     * @return string
      */
     public function __toString(): string
     {
