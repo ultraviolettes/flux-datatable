@@ -11,24 +11,34 @@ class FluxDataTable extends Component
 {
     use WithPagination;
 
-    public array  $columns       = [];
-    public mixed  $data          = [];
-    public array  $perPageOptions = [];
-    public string $search        = '';
-    public string $sortBy        = '';
+    public array $columns = [];
+
+    public mixed $data = [];
+
+    public array $perPageOptions = [];
+
+    public string $search = '';
+
+    public string $sortBy = '';
+
     public string $sortDirection = 'asc';
-    public int    $perPage       = 10;
-    public array  $actions       = [];
-    public array  $bulkActions   = [];
-    public array  $selected      = [];
-    public bool   $selectAll     = false;
+
+    public int $perPage = 10;
+
+    public array $actions = [];
+
+    public array $bulkActions = [];
+
+    public array $selected = [];
+
+    public bool $selectAll = false;
 
     protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage'];
 
     public function mount(array $columns, $data, array $perPageOptions = [], array $actions = [], array $bulkActions = [])
     {
         $this->columns = $columns;
-        $this->data    = $data;
+        $this->data = $data;
         $this->perPageOptions = $perPageOptions ?? config('flux-datatable.per_page', [10, 25, 50, 100]);
         $this->perPage = $this->perPageOptions[0] ?? 10;
         $this->actions = $actions;
@@ -74,7 +84,7 @@ class FluxDataTable extends Component
 
     public function toggleSelectAll(): void
     {
-        $this->selectAll = !$this->selectAll;
+        $this->selectAll = ! $this->selectAll;
 
         if ($this->selectAll) {
             $this->selected = $this->getRecordIds();
@@ -111,7 +121,6 @@ class FluxDataTable extends Component
         return $query->paginate($this->perPage);
     }
 
-
     public function render()
     {
         // Get Flux UI configuration
@@ -146,7 +155,7 @@ class FluxDataTable extends Component
             $query->where(function ($q) {
                 foreach ($this->columns as $col) {
                     if (isset($col['field']) && isset($col['searchable']) && $col['searchable'] !== false) {
-                        $q->orWhere($col['field'], 'like', '%' . $this->search . '%');
+                        $q->orWhere($col['field'], 'like', '%'.$this->search.'%');
                     }
                 }
             });

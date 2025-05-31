@@ -2,7 +2,6 @@
 
 namespace Ultraviolettes\FluxDataTable;
 
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Livewire\Livewire;
@@ -22,7 +21,7 @@ class FluxDataTableServiceProvider extends ServiceProvider
             __DIR__.'/../resources/views' => resource_path('views/vendor/flux-datatable'),
         ], 'views');
 
-  $this->registerLivewireComponents();
+        $this->registerLivewireComponents();
     }
 
     protected function registerLivewireComponents(): self
@@ -40,7 +39,7 @@ class FluxDataTableServiceProvider extends ServiceProvider
 
         // Register the main class to use with the facade
         $this->app->bind('flux-datatable', function () {
-            return new FluxDataTable();
+            return new FluxDataTable;
         });
     }
 }
