@@ -1,34 +1,34 @@
 # FluxDataTable
 
-[![Packagist Version](https://img.shields.io/packagist/v/your-vendor/flux-datatable.svg?style=flat-square)](https://packagist.org/packages/your-vendor/flux-datatable) [![Build Status](https://img.shields.io/github/actions/workflow/status/your-vendor/flux-datatable/ci.yml?branch=main&style=flat-square)](https://github.com/your-vendor/flux-datatable/actions) [![License](https://img.shields.io/packagist/l/your-vendor/flux-datatable.svg?style=flat-square)](LICENSE.md)
+[![Packagist Version](https://img.shields.io/packagist/v/ultraviolettes/flux-datatable.svg?style=flat-square)](https://packagist.org/packages/ultraviolettes/flux-datatable) [![License](https://img.shields.io/packagist/l/ultraviolettes/flux-datatable.svg?style=flat-square)](LICENSE.md)
 
-A standalone, Tailwind-powered Livewire DataTable component styled with Flux UI for Laravel.  
+A standalone, Tailwind+Livewire DataTable wrapper with Flux UI styling for Laravel.  
 Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 
 ---
 
 ## 🚀 Features
 
-- ✅ **Server-and-client pagination** (Flux pro feature)  
-- ✅ **Column sorting** (Flux pro feature)  
-- ✅ **Global search** (with debounce)  
-- ✅ **Bulk actions** (select & operate on multiple rows)  
-- ✅ **Loading & empty states**  
-- ✅ **Configurable column visibility**  
-- ✅ **Fully responsive & accessible** (Flux pro feature) 
-- ✅ **Blade slots** for custom cell rendering
-- ✅ **Config-driven CSS classes** via Tailwind
+- ✅ **Server-side pagination**
+- ✅ **Column sorting** with customizable direction
+- ✅ **Global search** with debounce
+- ✅ **Per-page options** for pagination
+- ✅ **Custom column rendering** with callbacks
+- ✅ **Sortable/searchable column configuration**
+- ✅ **Empty state handling**
+- ✅ **Fully responsive & accessible**
+- ✅ **Flux UI integration** with beautiful, consistent styling
+- ✅ **Config-driven components** with fallback options
 
 ---
 
 ## 📦 Requirements
 
-- **PHP** ≥ 8.1  
-- **Laravel** ≥ 12.x  
-- **Livewire** ≥ 2.x  
-- **TailwindCSS** (via Laravel Mix or Vite)  
+- **PHP** ≥ 8.4
+- **Laravel** ≥ 10.x
+- **Livewire** ≥ 2.x
+- **TailwindCSS** (via Laravel Mix or Vite)
 - **Flux UI** (for default styling)
-- **Flux Pro** (go to https://fluxui.dev/pricing to get your key)
 
 ---
 
@@ -41,8 +41,8 @@ composer require ultraviolettes/flux-datatable
 ## Publish config and views
 
 ```bash
-php artisan vendor:publish --provider="YourVendor\FluxDataTable\FluxDataTableServiceProvider" --tag="config"
-php artisan vendor:publish --provider="YourVendor\FluxDataTable\FluxDataTableServiceProvider" --tag="views"
+php artisan vendor:publish --provider="Ultraviolettes\FluxDataTable\FluxDataTableServiceProvider" --tag="config"
+php artisan vendor:publish --provider="Ultraviolettes\FluxDataTable\FluxDataTableServiceProvider" --tag="views"
 ```
 
 ## ⚙️ Configuration
@@ -52,7 +52,17 @@ return [
     // Default per-page options for pagination dropdown
     'per_page' => [10, 25, 50, 100],
 
-    // Default CSS classes for table elements (Tailwind)
+    // Flux UI Table Configuration
+    'flux_ui' => [
+        // Enable/disable Flux UI Table container component
+        'use_container' => true,
+        // Enable/disable Flux UI pagination component
+        'use_pagination' => true,
+        // Enable/disable Flux UI empty state component
+        'use_empty_state' => true,
+    ],
+
+    // Legacy CSS classes (deprecated)
     'classes' => [
         'wrapper'      => 'overflow-x-auto',
         'table'        => 'min-w-full divide-y divide-gray-200',
@@ -68,155 +78,124 @@ return [
 
 ## 🔧 Usage
 
-1. Create a Livewire Component
+### Flux UI Integration
 
-```bash
-php artisan make:livewire FluxDataTable
-```
+This package now fully integrates with Flux UI Table components to provide a beautiful, consistent styling experience. The integration includes:
 
-app/Http/Livewire/FluxDataTable.php
+- **Table Components**: Uses Flux UI Table components for the main table structure
+- **Form Components**: Uses Flux UI Input and Select components for search and pagination controls
+- **Utility Components**: Uses Flux UI Empty State and Pagination components for better user experience
+
+You can configure the Flux UI integration in the `config/flux-datatable.php` file:
 
 ```php
-<?php
+'flux_ui' => [
+    // Enable/disable Flux UI Table container component
+    'use_container' => true,
+    // Enable/disable Flux UI pagination component
+    'use_pagination' => true,
+    // Enable/disable Flux UI empty state component
+    'use_empty_state' => true,
+],
+```
 
-namespace App\Http\Livewire;
+If you disable any of these options, the package will fall back to standard HTML and Laravel's built-in components.
 
-use Livewire\Component;
-use Livewire\WithPagination;
+### Basic Usage
 
-class FluxDataTable extends Component
+You can use the FluxDataTable facade to create a new data table:
+
+```php
+use Ultraviolettes\FluxDataTable\Facades\FluxDataTable;
+
+// In your controller
+public function index()
 {
-    use WithPagination;
+    $table = FluxDataTable::columns([
+        ['label' => 'ID', 'field' => 'id'],
+        ['label' => 'Name', 'field' => 'name'],
+        ['label' => 'Email', 'field' => 'email'],
+    ])->data(User::query());
 
-    public array  $columns       = [];
-    public mixed  $data          = [];
-    public string $search        = '';
-    public string $sortField     = '';
-    public string $sortDirection = 'asc';
-
-    protected $updatesQueryString = ['search', 'sortField', 'sortDirection', 'page'];
-
-    public function mount(array $columns, $data)
-    {
-        $this->columns = $columns;
-        $this->data    = $data;
-    }
-
-    public function sortBy(string $field): void
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField     = $field;
-            $this->sortDirection = 'asc';
-        }
-        $this->resetPage();
-    }
-
-    public function updatingSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function render()
-    {
-        $query = $this->data instanceof \Illuminate\Pagination\Paginator || $this->data instanceof \Illuminate\Pagination\LengthAwarePaginator
-            ? $this->data->getCollection()->toQuery()
-            : collect($this->data)->toQuery();
-
-        if ($this->search) {
-            $query->where(function($q) {
-                foreach ($this->columns as $col) {
-                    $q->orWhere($col['field'], 'like', '%'.$this->search.'%');
-                }
-            });
-        }
-
-        if ($this->sortField) {
-            $query->orderBy($this->sortField, $this->sortDirection);
-        }
-
-        $perPage = config('flux-datatable.per_page')[0] ?? 10;
-
-        $records = $query->paginate($perPage);
-
-        return view('flux-datatable::livewire.table', [
-            'records' => $records,
-        ]);
-    }
+    return view('users.index', compact('table'));
 }
 ```
 
-2. Create the Blade View
+Then in your blade view:
 
-resources/views/livewire/table.blade.php
-
-```bladehtml
-<div class="{{ config('flux-datatable.classes.wrapper') }}">
-    <div>
-        <input
-            type="text"
-            wire:model.debounce.500ms="search"
-            placeholder="Search..."
-            class="{{ config('flux-datatable.classes.search_input') }}"
-        />
-    </div>
-
-    <table class="{{ config('flux-datatable.classes.table') }}">
-        <thead class="{{ config('flux-datatable.classes.thead') }}">
-            <tr>
-                @foreach ($columns as $col)
-                    <th
-                        wire:click="sortBy('{{ $col['field'] }}')"
-                        class="{{ config('flux-datatable.classes.th') }}"
-                    >
-                        {{ $col['label'] }}
-                        @if ($sortField === $col['field'])
-                            @if ($sortDirection === 'asc') ▲ @else ▼ @endif
-                        @endif
-                    </th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody class="{{ config('flux-datatable.classes.tbody') }}">
-            @forelse ($records as $row)
-                <tr>
-                    @foreach ($columns as $col)
-                        <td class="{{ config('flux-datatable.classes.td') }}">
-                            {{ data_get($row, $col['field']) }}
-                        </td>
-                    @endforeach
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="{{ count($columns) }}" class="text-center py-4">
-                        No records found.
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <div class="{{ config('flux-datatable.classes.pagination') }}">
-        {{ $records->links() }}
-    </div>
+```blade
+<div>
+    {!! $table !!}
 </div>
 ```
 
-3. Embed in Your App
+### Advanced Column Configuration
 
-```bladehtml
-<livewire:flux-data-table
+You can configure columns with additional options:
+
+```php
+FluxDataTable::columns([
+    [
+        'label' => 'ID', 
+        'field' => 'id',
+        'sortable' => true,
+        'searchable' => true,
+    ],
+    [
+        'label' => 'Name', 
+        'field' => 'name',
+        'sortable' => true,
+        'searchable' => true,
+    ],
+    [
+        'label' => 'Status', 
+        'field' => 'status',
+        'sortable' => false,
+        'searchable' => false,
+        'render' => function($row) {
+            return '<span class="badge badge-' . $row->status . '">' . ucfirst($row->status) . '</span>';
+        }
+    ],
+    [
+        'label' => 'Actions', 
+        'field' => null,
+        'sortable' => false,
+        'searchable' => false,
+        'render' => function($row) {
+            return '<a href="/users/' . $row->id . '/edit" class="btn btn-sm btn-primary">Edit</a>';
+        }
+    ],
+])->data(User::query());
+```
+
+### Customizing Per-Page Options
+
+You can customize the per-page options:
+
+```php
+FluxDataTable::columns([
+    // your columns
+])->data(User::query())
+  ->perPageOptions([5, 15, 30, 50]);
+```
+
+### Using with Livewire Directly
+
+If you prefer to use the Livewire component directly:
+
+```blade
+<livewire:flux-datatable::table
     :columns="[
-        ['label' => 'ID',    'field' => 'id'],
-        ['label' => 'Name',  'field' => 'name'],
+        ['label' => 'ID', 'field' => 'id'],
+        ['label' => 'Name', 'field' => 'name'],
         ['label' => 'Email', 'field' => 'email'],
     ]"
     :data="App\Models\User::query()"
+    :perPageOptions="[10, 25, 50, 100]"
 />
 ```
 
-🛠️ Testing
+## 🛠️ Testing
 
 ```bash
 composer require --dev orchestra/testbench livewire/livewire
@@ -228,11 +207,11 @@ Example feature test in tests/Feature/FluxDataTableTest.php:
 ```php
 <?php
 
-namespace YourVendor\FluxDataTable\Tests\Feature;
+namespace Ultraviolettes\FluxDataTable\Tests\Feature;
 
 use Livewire\Livewire;
 use Orchestra\Testbench\TestCase;
-use YourVendor\FluxDataTable\FluxDataTableServiceProvider;
+use Ultraviolettes\FluxDataTable\FluxDataTableServiceProvider;
 
 class FluxDataTableTest extends TestCase
 {
@@ -249,7 +228,7 @@ class FluxDataTableTest extends TestCase
     {
         $users = \App\Models\User::factory()->count(3)->create();
 
-        Livewire::test('flux-data-table', [
+        Livewire::test('flux-datatable::table', [
             'columns' => [['label' => 'Name', 'field' => 'name']],
             'data'    => \App\Models\User::query(),
         ])->assertSee($users->first()->name);
@@ -259,13 +238,13 @@ class FluxDataTableTest extends TestCase
 
 ## 🤝 Contributing
 
-Fork the repo
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -am 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Create your feature branch (git checkout -b feature/fooBar)
-Commit your changes (git commit -am 'Add some fooBar')
-Push to the branch (git push origin feature/fooBar)
-Open a Pull Request
-Please follow the PSR-12 coding standard and run composer run lint before submitting.
+Please follow the PSR-12 coding standard and run `composer run format` before submitting.
 
 ## 📄 License
 This package is open-sourced under the MIT license.

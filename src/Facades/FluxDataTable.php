@@ -1,16 +1,18 @@
 <?php
 
-namespace VendorName\Skeleton\Facades;
+namespace Ultraviolettes\FluxDataTable\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-/**
- * @see \VendorName\Skeleton\Skeleton
- */
-class Skeleton extends Facade
+class FluxDataTable extends Facade
 {
-    protected static function getFacadeAccessor(): string
+    /**
+     * Get the registered name of the component.
+     *
+     * @return string
+     */
+    protected static function getFacadeAccessor()
     {
-        return \VendorName\Skeleton\Skeleton::class;
+        return 'flux-datatable';
     }
 }

@@ -15,10 +15,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Classes CSS par défaut
+    | Flux UI Table Configuration
     |--------------------------------------------------------------------------
     |
-    | Personnalise ici les classes Tailwind appliquées aux éléments de la table.
+    | This package now uses Flux UI Table components directly.
+    | The styling is handled by the Flux UI components themselves.
+    |
+    */
+
+    'flux_ui' => [
+        // You can add custom configuration for Flux UI components here
+        'use_container' => true,
+        'use_pagination' => true,
+        'use_empty_state' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy CSS Classes (Deprecated)
+    |--------------------------------------------------------------------------
+    |
+    | These classes are kept for backward compatibility but are no longer used
+    | by default as the template now uses Flux UI components directly.
     |
     */
 
@@ -31,7 +49,6 @@ return [
         'td' => 'px-6 py-4 whitespace-nowrap',
         'pagination' => 'mt-4',
         'search_input' => 'mb-4 p-2 border rounded',
-        // etc...
     ],
 
 ];
