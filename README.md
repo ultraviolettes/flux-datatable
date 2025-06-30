@@ -224,14 +224,56 @@ $table->viewMode('card');
 
 Users can switch between views using the built-in view mode buttons. The current view mode is preserved in the URL query string.
 
-### Filter Modal
+### Filter System
 
-The FluxDataTable component includes a filter modal that can be customized:
+The FluxDataTable component includes a powerful filtering system that allows you to define filters for your data table. The filters are displayed in a modal that can be opened by clicking the "Filtres" button.
 
-```blade
-<!-- The filter modal is included by default in the table template -->
-<!-- You can customize the filter modal content in your published views -->
+To define filters, override the `filters()` method in your Livewire component:
+
+```php
+use Ultraviolettes\FluxDataTable\Filters\SelectFilter;
+use Ultraviolettes\FluxDataTable\Filters\DateFilter;
+
+class UsersTable extends \Ultraviolettes\FluxDataTable\Http\Livewire\FluxDataTable
+{
+    // ... other methods
+
+    public function filters(): array
+    {
+        return [
+            'status' => SelectFilter::make(__('Status'), 'status')
+                ->options([
+                    '' => 'Tous',
+                    'active' => 'Actif',
+                    'inactive' => 'Inactif',
+                    'pending' => 'En attente',
+                ]),
+            'role' => SelectFilter::make('Rôle', 'role')
+                ->options([
+                    '' => 'Tous',
+                    'admin' => 'Administrateur',
+                    'user' => 'Utilisateur',
+                    'guest' => 'Invité',
+                ]),
+            'created_at' => DateFilter::make(__('Creation date'), 'created_at')
+                ->query(fn ($query, $date) => $query->whereDate('created_at', $date)),
+        ];
+    }
+}
 ```
+
+The filter values are automatically applied to the query when the user selects a value from the filter dropdown. The filter values are also persisted in the URL query string, so users can share filtered views.
+
+You can reset all filters to their default values by clicking the "Réinitialiser" button in the filter modal.
+
+#### Available Filter Types
+
+Currently, the following filter types are available:
+
+- **SelectFilter**: A dropdown filter that allows users to select a single value from a list of options.
+- **DateFilter**: A date picker filter that allows users to select a date for filtering.
+
+More filter types will be added in future releases.
 
 ### Search Functionality
 

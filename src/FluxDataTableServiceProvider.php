@@ -5,7 +5,7 @@ namespace Ultraviolettes\FluxDataTable;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Livewire\Livewire;
-use Ultraviolettes\FluxDataTable\Http\Livewire\FluxDataTable as FluxDataTableComponent;
+use Ultraviolettes\FluxDataTable\Livewire\FluxDataTable as FluxDataTableComponent;
 
 class FluxDataTableServiceProvider extends ServiceProvider
 {
