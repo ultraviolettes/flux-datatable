@@ -5,7 +5,9 @@ namespace Ultraviolettes\FluxDataTable\Filters;
 abstract class Filter
 {
     protected string $name;
+
     protected string $field;
+
     protected array $options = [];
 
     public function __construct(string $name, string $field)

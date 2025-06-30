@@ -8,36 +8,35 @@ use Illuminate\View\View;
 class DateRangeFilter extends Filter
 {
     protected ?\Closure $queryCallback = null;
+
     protected array $config = [];
 
     /**
      * Set a custom query callback for the filter.
      *
-     * @param callable $callback
      * @return $this
      */
     public function query(callable $callback): self
     {
         $this->queryCallback = $callback;
+
         return $this;
     }
 
     /**
      * Set configuration options for the date range picker.
      *
-     * @param array $config
      * @return $this
      */
     public function config(array $config): self
     {
         $this->config = $config;
+
         return $this;
     }
 
     /**
      * Render the filter
-     *
-     * @return View
      */
     public function render(): View
     {
@@ -51,13 +50,13 @@ class DateRangeFilter extends Filter
     /**
      * Apply the filter to the query
      *
-     * @param Builder $query
-     * @param mixed $value
+     * @param  Builder  $query
+     * @param  mixed  $value
      * @return Builder
      */
     public function apply($query, $value)
     {
-        if (empty($value) || !is_array($value)) {
+        if (empty($value) || ! is_array($value)) {
             return $query;
         }
 
@@ -77,8 +76,6 @@ class DateRangeFilter extends Filter
     /**
      * Create a new DateRangeFilter instance
      *
-     * @param string $name
-     * @param string $field
      * @return static
      */
     public static function make(string $name, string $field): self
