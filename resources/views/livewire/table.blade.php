@@ -53,17 +53,20 @@
     <!-- Table View -->
     <div x-show="viewMode === 'table'">
         <flux:checkbox.group>
-            <flux:table :paginate="$this->records">
+            <flux:table :paginate="$this->records" data-flux-table="UV_FDT">
                 <flux:table.columns>
                     <flux:table.column class="w-10">
                         <flux:checkbox.all />
                     </flux:table.column>
                     @foreach ($columns as $col)
                         <flux:table.column
-                            :sortable="isset($col['sortable']) && $col['sortable'] ?? true"
-                            :sorted="isset($col['sortable']) && $col['sortable'] && $sortBy === $col['field']"
-                            :direction="isset($col['sortable']) && $col['sortable'] && $sortDirection"
-                            wire:click="sort('{{ $col['field'] }}')"
+                            x-data="{ sortable: {{ $col['sortable'] ? 'true' : 'false' }} }"
+                            align="center"
+                            sortable="$col['sortable'] ?? true"
+                            sorted="$sortBy === $col['field']"
+                            direction="$sortDirection"
+                            x-bind:class="{ 'cursor-pointer': sortable }"
+                            x-on:click="sortable ? $wire.sort('{{ $col['field'] }}') : null"
                         >
                             {{ $col['label'] }}
                         </flux:table.column>
@@ -77,7 +80,7 @@
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach ($this->records as $row)
-                        <flux:table.row :key="$row->id ?? $loop->index">
+                        <flux:table.row wire:key="$row->id ?? $loop->index">
                             <flux:table.cell>
                                 <flux:checkbox
                                     :value="in_array($row->id, $selected)"
@@ -95,7 +98,7 @@
                                             {{ data_get($row, $col['field']) }}
                                         @endif
                                     @else
-                                        {{ data_get($row, $col['field']) }}
+                                        {{ data_get($row->toArray(), $col['field']) }}
                                     @endif
                                 </flux:table.cell>
                             @endforeach

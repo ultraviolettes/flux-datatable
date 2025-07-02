@@ -123,10 +123,10 @@ class FluxDataTable extends Component
     public function records()
     {
         // Handle different types of data sources
-        $query = $this->builder();
-
-        // Apply filters
-        $query = $this->applyFilters($query);
+        $query = $this->builder()
+            ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
+            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%"))
+            ->tap(fn ($query) => $this->applyFilters($query));
 
         return $query->paginate($this->perPage);
     }
