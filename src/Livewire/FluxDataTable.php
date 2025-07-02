@@ -183,6 +183,7 @@ class FluxDataTable extends Component
                 $query = $filter->apply($query, $this->filters[$field]);
             }
         }
+
         return $query;
     }
 
