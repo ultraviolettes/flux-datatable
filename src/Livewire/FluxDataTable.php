@@ -5,6 +5,7 @@ namespace Ultraviolettes\FluxDataTable\Livewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,10 +15,13 @@ class FluxDataTable extends Component
 
     public array $perPageOptions = [];
 
+    #[Url(except: '')]
     public string $search = '';
 
-    public string $sortBy = '';
+    #[Url(except: 'name')]
+    public ?string $sortBy = 'name';
 
+    #[Url(except: 'asc')]
     public string $sortDirection = 'asc';
 
     public int $perPage = 10;
@@ -179,7 +183,6 @@ class FluxDataTable extends Component
                 $query = $filter->apply($query, $this->filters[$field]);
             }
         }
-
         return $query;
     }
 

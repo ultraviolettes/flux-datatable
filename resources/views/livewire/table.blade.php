@@ -11,7 +11,7 @@
             <flux:button icon="squares-2x2" x-bind:class="{ 'bg-primary-500': viewMode === 'card' }" wire:click="setViewMode('card')"></flux:button>
         </flux:button.group>
 
-        <flux:modal name="filter-modal" class="md:w-96">
+        <flux:modal name="filter-modal" class="md:w-96" variant="flyout">
             <div class="space-y-6">
                 <flux:fieldset>
                     <flux:legend>Filtres</flux:legend>
@@ -24,7 +24,7 @@
                 <div class="flex">
                     <flux:spacer />
                     <flux:button wire:click="resetFilters" variant="ghost">Réinitialiser</flux:button>
-                    <flux:button x-on:click="$dispatch('close-modal', 'filter-modal')" variant="primary">Appliquer les filtres</flux:button>
+                    <flux:button x-on:click="$flux.modals().close()" variant="primary">Appliquer les filtres</flux:button>
                 </div>
             </div>
         </flux:modal>
