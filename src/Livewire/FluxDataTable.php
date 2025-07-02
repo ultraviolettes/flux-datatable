@@ -4,7 +4,6 @@ namespace Ultraviolettes\FluxDataTable\Livewire;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -85,7 +84,7 @@ class FluxDataTable extends Component
 
     public function toggleSelectAll(): void
     {
-        $this->selectAll = !$this->selectAll;
+        $this->selectAll = ! $this->selectAll;
 
         if ($this->selectAll) {
             $this->selected = $this->getRecordIds();
@@ -143,7 +142,7 @@ class FluxDataTable extends Component
         return view('flux-datatable::livewire.table', [
             'fluxUiConfig' => $fluxUiConfig,
             'columns' => $this->columns(),
-            'tableFilters' => $this->filters()
+            'tableFilters' => $this->filters(),
         ]);
     }
 
@@ -155,8 +154,6 @@ class FluxDataTable extends Component
     /**
      * Define the filters for the datatable.
      * Child classes should override this method to define filters.
-     *
-     * @return array
      */
     public function filters(): array
     {
@@ -165,8 +162,6 @@ class FluxDataTable extends Component
 
     /**
      * Reset all filters to their default values.
-     *
-     * @return void
      */
     public function resetFilters(): void
     {
@@ -176,9 +171,6 @@ class FluxDataTable extends Component
 
     /**
      * Apply filters to the query.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     protected function applyFilters(Builder $query): Builder
     {
@@ -200,6 +192,4 @@ class FluxDataTable extends Component
     {
         throw new \BadMethodCallException('Child class must implement the getBaseQuery method.');
     }
-
-
 }

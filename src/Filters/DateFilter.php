@@ -12,19 +12,17 @@ class DateFilter extends Filter
     /**
      * Set a custom query callback for the filter.
      *
-     * @param callable $callback
      * @return $this
      */
     public function query(callable $callback): self
     {
         $this->queryCallback = $callback;
+
         return $this;
     }
 
     /**
      * Render the filter
-     *
-     * @return View
      */
     public function render(): View
     {
@@ -37,8 +35,8 @@ class DateFilter extends Filter
     /**
      * Apply the filter to the query
      *
-     * @param Builder $query
-     * @param mixed $value
+     * @param  Builder  $query
+     * @param  mixed  $value
      * @return Builder
      */
     public function apply($query, $value)
@@ -59,8 +57,6 @@ class DateFilter extends Filter
     /**
      * Create a new DateFilter instance
      *
-     * @param string $name
-     * @param string $field
      * @return static
      */
     public static function make(string $name, string $field): self
