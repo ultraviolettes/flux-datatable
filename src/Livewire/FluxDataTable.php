@@ -38,15 +38,31 @@ class FluxDataTable extends Component
 
     public array $filters = [];
 
+    /**
+     * Fields to search when using the search input.
+     * Default is ['name'] for backward compatibility.
+     */
+    protected array $searchableFields = ['name'];
+
     protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage', 'viewMode', 'filters'];
 
-    public function mount(array $perPageOptions = [], array $actions = [], array $bulkActions = [], string $viewMode = 'table'): void
+    public function mount(
+        array $perPageOptions = [],
+        array $actions = [],
+        array $bulkActions = [],
+        string $viewMode = 'table',
+        array $searchableFields = []
+    ): void
     {
         $this->perPageOptions = $perPageOptions ?? config('flux-datatable.per_page', [10, 25, 50, 100]);
         $this->perPage = $this->perPageOptions[0] ?? 10;
         $this->actions = $actions;
         $this->bulkActions = $bulkActions;
         $this->viewMode = $viewMode;
+
+        if (!empty($searchableFields)) {
+            $this->searchableFields = $searchableFields;
+        }
     }
 
     public function sort(string $column): void
@@ -128,7 +144,7 @@ class FluxDataTable extends Component
         // Handle different types of data sources
         $query = $this->builder()
             ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
-            ->when($this->search, fn ($query) => $query->where('name', 'like', "%{$this->search}%"))
+            ->when($this->search, function ($query) { return $query->whereFullText($this->searchableFields, $this->search); })
             ->tap(fn ($query) => $this->applyFilters($query));
 
         return $query->paginate($this->perPage);
@@ -185,6 +201,28 @@ class FluxDataTable extends Component
         }
 
         return $query;
+    }
+
+    /**
+     * Set the fields to search when using the search input.
+     *
+     * @param array $fields Array of field names to search
+     * @return $this
+     */
+    public function setSearchableFields(array $fields): self
+    {
+        $this->searchableFields = $fields;
+        return $this;
+    }
+
+    /**
+     * Get the fields that are searchable.
+     *
+     * @return array
+     */
+    public function getSearchableFields(): array
+    {
+        return $this->searchableFields;
     }
 
     /**

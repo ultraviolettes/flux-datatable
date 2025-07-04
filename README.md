@@ -284,7 +284,30 @@ The search functionality is now enhanced with a dedicated search input:
 // The search property is automatically bound to the input
 ```
 
-You can customize the search behavior in your Livewire component:
+#### Customizing Searchable Fields
+
+By default, the search functionality only searches in the 'name' field. You can customize which fields are searched by using the `setSearchableFields` method or by passing the fields in the constructor:
+
+```php
+// Using the setSearchableFields method
+class UsersTable extends \Ultraviolettes\FluxDataTable\Livewire\FluxDataTable
+{
+    public function mount()
+    {
+        parent::mount();
+        $this->setSearchableFields(['name', 'email', 'description']);
+    }
+}
+
+// Or when initializing the component
+<livewire:users-table 
+    :searchableFields="['name', 'email', 'description']"
+/>
+```
+
+The search will now look for matches in all specified fields, using OR conditions between them.
+
+You can also customize the search behavior in your Livewire component:
 
 ```php
 // In your Livewire component

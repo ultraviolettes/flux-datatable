@@ -60,12 +60,12 @@
                     </flux:table.column>
                     @foreach ($columns as $col)
                         <flux:table.column
-                            x-data="{ sortable: {{ $col['sortable'] ? 'true' : 'false' }} }"
+                            x-data="{ sortable: {{ isset($col['sortable']) && $col['sortable'] ? 'true' : 'false' }} }"
                             align="center"
-                            sortable="$col['sortable'] ?? true"
-                            sorted="$sortBy === $col['field']"
-                            direction="$sortDirection"
-                            x-bind:class="{ 'cursor-pointer': sortable }"
+                            :sortable="isset($col['sortable']) && $col['sortable']"
+                            :sorted="$sortBy === $col['field']"
+                            :direction="$sortDirection"
+                            x-bind:class="{'cursor-pointer': sortable }"
                             x-on:click="sortable ? $wire.sort('{{ $col['field'] }}') : null"
                         >
                             {{ $col['label'] }}
@@ -88,7 +88,7 @@
                                 />
                             </flux:table.cell>
                             @foreach ($columns as $col)
-                                <flux:table.cell>
+                                <flux:table.cell align="center" variant="strong">
                                     @if(isset($col['render']))
                                         @if(is_callable($col['render']))
                                             {!! $col['render']($row) !!}
