@@ -8,10 +8,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Ultraviolettes\FluxDataTable\Traits\WithConfig;
 
 class FluxDataTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithConfig;
 
     public array $perPageOptions = [];
 
@@ -62,6 +63,8 @@ class FluxDataTable extends Component
         if (! empty($searchableFields)) {
             $this->searchableFields = $searchableFields;
         }
+
+        $this->config();
     }
 
     public function sort(string $column): void
@@ -153,15 +156,8 @@ class FluxDataTable extends Component
 
     public function render(): View
     {
-        // Get Flux UI configuration
-        $fluxUiConfig = config('flux-datatable.flux_ui', [
-            'use_container' => true,
-            'use_pagination' => true,
-            'use_empty_state' => true,
-        ]);
 
         return view('flux-datatable::livewire.table', [
-            'fluxUiConfig' => $fluxUiConfig,
             'columns' => $this->columns(),
             'tableFilters' => $this->filters(),
         ]);

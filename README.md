@@ -57,24 +57,10 @@ return [
 
     // Flux UI Table Configuration
     'flux_ui' => [
-        // Enable/disable Flux UI Table container component
-        'use_container' => true,
         // Enable/disable Flux UI pagination component
         'use_pagination' => true,
-        // Enable/disable Flux UI empty state component
-        'use_empty_state' => true,
-    ],
-
-    // Legacy CSS classes (deprecated)
-    'classes' => [
-        'wrapper'      => 'overflow-x-auto',
-        'table'        => 'min-w-full divide-y divide-gray-200',
-        'thead'        => 'bg-gray-50',
-        'th'           => 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-        'tbody'        => 'bg-white divide-y divide-gray-200',
-        'td'           => 'px-6 py-4 whitespace-nowrap',
-        'pagination'   => 'mt-4',
-        'search_input' => 'mb-4 p-2 border rounded',
+        // Enable/disable view mode table / card
+        'use_view_mode' => true,
     ],
 ];
 ```

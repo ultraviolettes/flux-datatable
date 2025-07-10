@@ -1,33 +1,38 @@
 <div x-data="{ viewMode: @entangle('viewMode') }">
     <div class="flex flex-row gap-4 pt-4">
         @if($tableFilters)
-        <flux:modal.trigger name="filter-modal">
-            <flux:button variant="filled">+ Filtres</flux:button>
-        </flux:modal.trigger>
+            <flux:modal.trigger name="filter-modal">
+                <flux:button variant="filled">+ Filtres</flux:button>
+            </flux:modal.trigger>
         @endif
         <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" />
-        <flux:button.group>
-            <flux:button icon="table-cells" x-bind:class="{ 'bg-primary': viewMode === 'table' }" wire:click="setViewMode('table')"></flux:button>
-            <flux:button icon="squares-2x2" x-bind:class="{ 'bg-primary-500': viewMode === 'card' }" wire:click="setViewMode('card')"></flux:button>
-        </flux:button.group>
 
-        <flux:modal name="filter-modal" class="md:w-96" variant="flyout">
-            <div class="space-y-6">
-                <flux:fieldset>
-                    <flux:legend>Filtres</flux:legend>
-                    <div class="space-y-6">
-                        @foreach($tableFilters as $field => $filter)
-                            {!! $filter->render() !!}
-                        @endforeach
+        @if($useViewMode)
+            <flux:button.group>
+                <flux:button icon="table-cells" x-bind:class="{ 'bg-primary': viewMode === 'table' }" @click="viewMode = 'table'"></flux:button>
+                <flux:button icon="squares-2x2" x-bind:class="{ 'bg-primary-500': viewMode === 'card' }" @click="viewMode = 'card'"></flux:button>
+            </flux:button.group>
+        @endif
+
+        @if($tableFilters)
+            <flux:modal name="filter-modal" class="md:w-96" variant="flyout">
+                <div class="space-y-6">
+                    <flux:fieldset>
+                        <flux:legend>Filtres</flux:legend>
+                        <div class="space-y-6">
+                            @foreach($tableFilters as $field => $filter)
+                                {!! $filter->render() !!}
+                            @endforeach
+                        </div>
+                    </flux:fieldset>
+                    <div class="flex">
+                        <flux:spacer />
+                        <flux:button wire:click="resetFilters" variant="ghost">Réinitialiser</flux:button>
+                        <flux:button x-on:click="$flux.modals().close()" variant="primary">Appliquer les filtres</flux:button>
                     </div>
-                </flux:fieldset>
-                <div class="flex">
-                    <flux:spacer />
-                    <flux:button wire:click="resetFilters" variant="ghost">Réinitialiser</flux:button>
-                    <flux:button x-on:click="$flux.modals().close()" variant="primary">Appliquer les filtres</flux:button>
                 </div>
-            </div>
-        </flux:modal>
+            </flux:modal>
+        @endif
     </div>
 
     <div class="m-8"></div>
@@ -53,11 +58,13 @@
     <!-- Table View -->
     <div x-show="viewMode === 'table'">
         <flux:checkbox.group>
-            <flux:table :paginate="$this->records" data-flux-table="UV_FDT">
+            <flux:table :paginate="$usePagination ? $this->records : null">
                 <flux:table.columns>
-                    <flux:table.column class="w-10">
-                        <flux:checkbox.all />
-                    </flux:table.column>
+                    @if(count($bulkActions) > 0)
+                        <flux:table.column class="w-10">
+                            <flux:checkbox.all />
+                        </flux:table.column>
+                    @endif
                     @foreach ($columns as $col)
                         <flux:table.column
                             x-data="{ sortable: {{ isset($col['sortable']) && $col['sortable'] ? 'true' : 'false' }} }"
@@ -81,12 +88,14 @@
                 <flux:table.rows>
                     @foreach ($this->records as $row)
                         <flux:table.row wire:key="$row->id ?? $loop->index">
-                            <flux:table.cell>
-                                <flux:checkbox
-                                    :value="in_array($row->id, $selected)"
-                                    wire:click="toggleSelect('{{ $row->id }}')"
-                                />
-                            </flux:table.cell>
+                            @if(count($bulkActions) > 0)
+                                <flux:table.cell>
+                                    <flux:checkbox
+                                        :value="in_array($row->id, $selected)"
+                                        wire:click="toggleSelect('{{ $row->id }}')"
+                                    />
+                                </flux:table.cell>
+                            @endif
                             @foreach ($columns as $col)
                                 <flux:table.cell align="center" variant="strong">
                                     @if(isset($col['render']))
@@ -123,11 +132,7 @@
                     @if(count($this->records) === 0)
                         <flux:table.row>
                             <flux:table.cell colspan="{{ count($columns) + (count($bulkActions) > 0 ? 1 : 0) + (count($actions) > 0 ? 1 : 0) }}" class="text-center py-4">
-                                @if($fluxUiConfig['use_empty_state'] ?? true)
-                                    No records found.
-                                @else
-                                    No records found.
-                                @endif
+                                No records found.
                             </flux:table.cell>
                         </flux:table.row>
                     @endif
@@ -178,7 +183,7 @@
             @endforeach
         </div>
 
-        @if($fluxUiConfig['use_pagination'] ?? true)
+        @if($usePagination)
             <div class="mt-4">
                 <flux:pagination :paginator="$this->records" />
             </div>
