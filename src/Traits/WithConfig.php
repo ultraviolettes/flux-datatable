@@ -1,10 +1,9 @@
 <?php
-namespace Ultraviolettes\FluxDataTable\Traits;
 
+namespace Ultraviolettes\FluxDataTable\Traits;
 
 trait WithConfig
 {
-
     public bool $usePagination = true;
 
     public bool $useViewMode = false;
@@ -15,13 +14,12 @@ trait WithConfig
         $this->setUseViewMode(config('flux-datatable.flux_ui.use_view_mode', false));
     }
 
-    public function setUsePagination( bool $value ): void
+    public function setUsePagination(bool $value): void
     {
         $this->usePagination = $value;
     }
 
-
-    public function setUseViewMode( bool $value ): void
+    public function setUseViewMode(bool $value): void
     {
         $this->useViewMode = $value;
     }

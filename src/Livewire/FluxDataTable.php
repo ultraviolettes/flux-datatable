@@ -12,7 +12,7 @@ use Ultraviolettes\FluxDataTable\Traits\WithConfig;
 
 class FluxDataTable extends Component
 {
-    use WithPagination, WithConfig;
+    use WithConfig, WithPagination;
 
     public array $perPageOptions = [];
 
