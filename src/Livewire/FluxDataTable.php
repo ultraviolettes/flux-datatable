@@ -157,7 +157,7 @@ class FluxDataTable extends Component
     public function render(): View
     {
 
-        return view('flux-datatable::livewire.table', [ // @phpstan-ignore-line
+        return view('flux-datatable::livewire.table', [
             'columns' => $this->columns(),
             'tableFilters' => $this->filters(),
         ]);
