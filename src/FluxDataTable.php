@@ -113,7 +113,6 @@ class FluxDataTable
     {
         return app()->make('livewire')->mount('flux-datatable::table', [
             'columns' => $this->columns,
-            'data' => $this->data,
             'perPageOptions' => $this->perPageOptions,
             'actions' => $this->actions,
             'bulkActions' => $this->bulkActions,

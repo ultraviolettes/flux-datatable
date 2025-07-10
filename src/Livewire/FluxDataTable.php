@@ -1,9 +1,11 @@
 <?php
 
-namespace Ultraviolettes\FluxDataTable\Http\Livewire;
+namespace Ultraviolettes\FluxDataTable\Livewire;
 
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,16 +13,15 @@ class FluxDataTable extends Component
 {
     use WithPagination;
 
-    public array $columns = [];
-
-    public mixed $data = [];
-
     public array $perPageOptions = [];
 
+    #[Url(except: '')]
     public string $search = '';
 
-    public string $sortBy = '';
+    #[Url(except: 'name')]
+    public ?string $sortBy = 'name';
 
+    #[Url(except: 'asc')]
     public string $sortDirection = 'asc';
 
     public int $perPage = 10;
@@ -35,17 +36,32 @@ class FluxDataTable extends Component
 
     public string $viewMode = 'table';
 
-    protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage', 'viewMode'];
+    public array $filters = [];
 
-    public function mount(array $columns, $data, array $perPageOptions = [], array $actions = [], array $bulkActions = [], string $viewMode = 'table')
-    {
-        $this->columns = $columns;
-        $this->data = $data;
+    /**
+     * Fields to search when using the search input.
+     * Default is ['name'] for backward compatibility.
+     */
+    protected array $searchableFields = ['name'];
+
+    protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage', 'viewMode', 'filters'];
+
+    public function mount(
+        array $perPageOptions = [],
+        array $actions = [],
+        array $bulkActions = [],
+        string $viewMode = 'table',
+        array $searchableFields = []
+    ): void {
         $this->perPageOptions = $perPageOptions ?? config('flux-datatable.per_page', [10, 25, 50, 100]);
         $this->perPage = $this->perPageOptions[0] ?? 10;
         $this->actions = $actions;
         $this->bulkActions = $bulkActions;
         $this->viewMode = $viewMode;
+
+        if (! empty($searchableFields)) {
+            $this->searchableFields = $searchableFields;
+        }
     }
 
     public function sort(string $column): void
@@ -125,13 +141,17 @@ class FluxDataTable extends Component
     public function records()
     {
         // Handle different types of data sources
-        $query = $this->getBaseQuery();
+        $query = $this->builder()
+            ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
+            ->when($this->search, function ($query) {
+                return $query->whereFullText($this->searchableFields, $this->search);
+            })
+            ->tap(fn ($query) => $this->applyFilters($query));
 
-        // Apply pagination
         return $query->paginate($this->perPage);
     }
 
-    public function render()
+    public function render(): View
     {
         // Get Flux UI configuration
         $fluxUiConfig = config('flux-datatable.flux_ui', [
@@ -142,36 +162,76 @@ class FluxDataTable extends Component
 
         return view('flux-datatable::livewire.table', [
             'fluxUiConfig' => $fluxUiConfig,
+            'columns' => $this->columns(),
+            'tableFilters' => $this->filters(),
         ]);
     }
 
-    /**
-     * @return array|\Illuminate\Database\Eloquent\Builder|mixed
-     */
-    public function getBaseQuery(): mixed
+    public function columns(): array
     {
-        if ($this->data instanceof \Illuminate\Database\Eloquent\Builder) {
-            $query = $this->data;
-        } elseif ($this->data instanceof \Illuminate\Pagination\Paginator || $this->data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
-            $query = $this->data->getCollection()->toQuery();
-        } elseif ($this->data instanceof Collection) {
-            $query = $this->data->toQuery();
-        } else {
-            $query = collect($this->data)->toQuery();
+        throw new \BadMethodCallException('Child class must implement the columns method.');
+    }
+
+    /**
+     * Define the filters for the datatable.
+     * Child classes should override this method to define filters.
+     */
+    public function filters(): array
+    {
+        return [];
+    }
+
+    /**
+     * Reset all filters to their default values.
+     */
+    public function resetFilters(): void
+    {
+        $this->filters = [];
+        $this->resetPage();
+    }
+
+    /**
+     * Apply filters to the query.
+     */
+    protected function applyFilters(Builder $query): Builder
+    {
+        foreach ($this->filters() as $field => $filter) {
+            if (isset($this->filters[$field]) && $this->filters[$field] !== '') {
+                $query = $filter->apply($query, $this->filters[$field]);
+            }
         }
 
-        // Apply search filter
-        if ($this->search) {
-            $query->where(function ($q) {
-                foreach ($this->columns as $col) {
-                    if (isset($col['field']) && isset($col['searchable']) && $col['searchable'] !== false) {
-                        $q->orWhere($col['field'], 'like', '%'.$this->search.'%');
-                    }
-                }
-            });
-        }
+        return $query;
+    }
 
-        // Apply sorting using tap function
-        return $query->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query);
+    /**
+     * Set the fields to search when using the search input.
+     *
+     * @param  array  $fields  Array of field names to search
+     * @return $this
+     */
+    public function setSearchableFields(array $fields): self
+    {
+        $this->searchableFields = $fields;
+
+        return $this;
+    }
+
+    /**
+     * Get the fields that are searchable.
+     */
+    public function getSearchableFields(): array
+    {
+        return $this->searchableFields;
+    }
+
+    /**
+     * Define the base query. Child classes should override this.
+     *
+     * @throws \BadMethodCallException
+     */
+    public function builder(): Builder
+    {
+        throw new \BadMethodCallException('Child class must implement the getBaseQuery method.');
     }
 }
