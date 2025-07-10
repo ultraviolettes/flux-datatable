@@ -4,6 +4,7 @@ namespace Ultraviolettes\FluxDataTable\Livewire;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -54,7 +55,7 @@ class FluxDataTable extends Component
         string $viewMode = 'table',
         array $searchableFields = []
     ): void {
-        $this->perPageOptions = $perPageOptions ?? config('flux-datatable.per_page', [10, 25, 50, 100]);
+        $this->perPageOptions = empty($perPageOptions) ? config('flux-datatable.per_page', [10, 25, 50, 100]) : $perPageOptions;
         $this->perPage = $this->perPageOptions[0] ?? 10;
         $this->actions = $actions;
         $this->bulkActions = $bulkActions;
@@ -137,27 +138,26 @@ class FluxDataTable extends Component
 
     protected function getRecordIds(): array
     {
-        return $this->records->pluck('id')->toArray();
+        return $this->records()->pluck('id')->toArray();
     }
 
     #[Computed]
-    public function records()
+    public function records(): LengthAwarePaginator
     {
         // Handle different types of data sources
-        $query = $this->builder()
+        return $this->builder()
             ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
             ->when($this->search, function ($query) {
                 return $query->whereFullText($this->searchableFields, $this->search);
             })
-            ->tap(fn ($query) => $this->applyFilters($query));
-
-        return $query->paginate($this->perPage);
+            ->tap(fn ($query) => $this->applyFilters($query))
+            ->paginate($this->perPage);
     }
 
     public function render(): View
     {
 
-        return view('flux-datatable::livewire.table', [
+        return view('flux-datatable::livewire.table', [ // @phpstan-ignore-line
             'columns' => $this->columns(),
             'tableFilters' => $this->filters(),
         ]);
@@ -173,6 +173,12 @@ class FluxDataTable extends Component
      * Child classes should override this method to define filters.
      */
     public function filters(): array
+    {
+        return [];
+    }
+
+    #[Computed]
+    public function headerWidgets(): array
     {
         return [];
     }

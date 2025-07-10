@@ -21,6 +21,9 @@ jobs:
           php-version: '8.4'
           coverage: none
 
+      - name: Add Flux license
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
 

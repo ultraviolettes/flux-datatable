@@ -5,7 +5,7 @@ namespace Ultraviolettes\FluxDataTable\Filters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
-class SelectFilter extends Filter
+final class SelectFilter extends Filter
 {
     protected array $options = [];
 
@@ -36,7 +36,7 @@ class SelectFilter extends Filter
      */
     public function render(): View
     {
-        return view('flux-datatable::filters.select', [
+        return view('flux-datatable::filters.select', [ // @phpstan-ignore-line
             'name' => $this->name,
             'field' => $this->field,
             'options' => $this->options,
@@ -83,6 +83,6 @@ class SelectFilter extends Filter
      */
     public static function make(string $name, string $field): self
     {
-        return new static($name, $field);
+        return new self($name, $field);
     }
 }

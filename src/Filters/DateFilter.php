@@ -5,7 +5,7 @@ namespace Ultraviolettes\FluxDataTable\Filters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
-class DateFilter extends Filter
+final class DateFilter extends Filter
 {
     protected ?\Closure $queryCallback = null;
 
@@ -26,7 +26,7 @@ class DateFilter extends Filter
      */
     public function render(): View
     {
-        return view('flux-datatable::filters.date', [
+        return view('flux-datatable::filters.date', [  // @phpstan-ignore-line
             'name' => $this->name,
             'field' => $this->field,
         ]);
@@ -61,6 +61,6 @@ class DateFilter extends Filter
      */
     public static function make(string $name, string $field): self
     {
-        return new static($name, $field);
+        return new self($name, $field);
     }
 }
