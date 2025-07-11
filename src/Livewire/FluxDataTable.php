@@ -5,10 +5,12 @@ namespace Ultraviolettes\FluxDataTable\Livewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Ultraviolettes\FluxDataTable\DataObject\WidgetDataObject;
 use Ultraviolettes\FluxDataTable\Traits\WithConfig;
 
 class FluxDataTable extends Component
@@ -177,10 +179,13 @@ class FluxDataTable extends Component
         return [];
     }
 
+    /**
+     * @return Collection<WidgetDataObject>
+     */
     #[Computed]
-    public function headerWidgets(): array
+    public function headerWidgets(): Collection
     {
-        return [];
+        return collect();
     }
 
     /**

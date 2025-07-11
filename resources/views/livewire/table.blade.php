@@ -1,10 +1,10 @@
 <div x-data="{ viewMode: @entangle('viewMode') }">
 
-    @if($this->headerWidgets)
+    @if($this->headerWidgets->isNotEmpty())
 
         <div class="flex gap-4">
             @foreach($this->headerWidgets as $widget)
-                <x-flux-datatable::widget :label="$widget['label']" :field="$widget['field']" />
+                <x-flux-datatable::widget :data="$widget" />
             @endforeach
         </div>
 
