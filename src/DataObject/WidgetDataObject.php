@@ -19,6 +19,7 @@ class WidgetDataObject
     public function isCurrency(bool $isCurrency = true): self
     {
         $this->isCurrency = $isCurrency;
+
         return $this;
     }
 }
