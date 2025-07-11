@@ -9,6 +9,5 @@ class Widget
     public function render(): View
     {
         return view('flux-datatable::components.widget');
-
     }
 }
