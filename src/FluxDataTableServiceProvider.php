@@ -2,24 +2,21 @@
 
 namespace Ultraviolettes\FluxDataTable;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Livewire\Livewire;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Ultraviolettes\FluxDataTable\Components\Widget;
 use Ultraviolettes\FluxDataTable\Livewire\FluxDataTable as FluxDataTableComponent;
 
-class FluxDataTableServiceProvider extends ServiceProvider
+class FluxDataTableServiceProvider extends PackageServiceProvider
 {
-    public function boot()
+    public function configurePackage(Package $package): void
     {
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'flux-datatable');
-
-        $this->publishes([
-            __DIR__.'/../config/flux-datatable.php' => config_path('flux-datatable.php'),
-        ], 'config');
-
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/flux-datatable'),
-        ], 'views');
+        $package->name('flux-datatable')
+            ->hasViews('flux-datatable')
+            ->hasViewComponents('flux-datatable', Widget::class)
+            ->hasConfigFile('flux-datatable');
 
         $this->registerLivewireComponents();
     }
@@ -31,15 +28,5 @@ class FluxDataTableServiceProvider extends ServiceProvider
         });
 
         return $this;
-    }
-
-    public function register()
-    {
-        $this->mergeConfigFrom(__DIR__.'/../config/flux-datatable.php', 'flux-datatable');
-
-        // Register the main class to use with the facade
-        $this->app->bind('flux-datatable', function () {
-            return new FluxDataTable;
-        });
     }
 }

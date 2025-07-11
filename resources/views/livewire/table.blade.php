@@ -1,11 +1,22 @@
 <div x-data="{ viewMode: @entangle('viewMode') }">
+
+    @if($this->headerWidgets->isNotEmpty())
+
+        <div class="flex gap-4">
+            @foreach($this->headerWidgets as $widget)
+                <x-flux-datatable::widget :data="$widget" />
+            @endforeach
+        </div>
+
+    @endif
+
     <div class="flex flex-row gap-4 pt-4">
         @if($tableFilters)
             <flux:modal.trigger name="filter-modal">
                 <flux:button variant="filled">+ Filtres</flux:button>
             </flux:modal.trigger>
         @endif
-        <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" />
+        <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs"/>
 
         @if($useViewMode)
             <flux:button.group>
