@@ -4,7 +4,7 @@
 
         <div class="flex gap-4">
             @foreach($this->headerWidgets as $widget)
-                <x-flux-datatable::widget :data="$widget" />
+                <x-flux-datatable::widget :data="$widget" wire:key="widget-{{ \Illuminate\Support\Str::slug($widget->label) }}"/>
             @endforeach
         </div>
 
@@ -76,7 +76,10 @@
                             <flux:checkbox.all />
                         </flux:table.column>
                     @endif
-                    @foreach ($columns as $col)
+                    @foreach ($columns as $index => $col)
+                        @php
+                            $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
+                        @endphp
                         <flux:table.column
                             x-data="{ sortable: {{ isset($col['sortable']) && $col['sortable'] ? 'true' : 'false' }} }"
                             align="center"
@@ -85,6 +88,7 @@
                             :direction="$sortDirection"
                             x-bind:class="{'cursor-pointer': sortable }"
                             x-on:click="sortable ? $wire.sort('{{ $col['field'] }}') : null"
+                            :wire:key="'table-th-' . $colId"
                         >
                             {{ $col['label'] }}
                         </flux:table.column>
@@ -98,7 +102,10 @@
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach ($this->records as $row)
-                        <flux:table.row wire:key="$row->id ?? $loop->index">
+                        @php
+                            $rowId = $row->id ?? $loop->index;
+                        @endphp
+                        <flux:table.row :wire:key="'row-key-' . $rowId">
                             @if(count($bulkActions) > 0)
                                 <flux:table.cell>
                                     <flux:checkbox
@@ -107,8 +114,11 @@
                                     />
                                 </flux:table.cell>
                             @endif
-                            @foreach ($columns as $col)
-                                <flux:table.cell align="center" variant="strong">
+                            @foreach ($columns as $index => $col)
+                                @php
+                                    $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
+                                @endphp
+                                <flux:table.cell align="center" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId">
                                     @if(isset($col['render']))
                                         @if(is_callable($col['render']))
                                             {!! $col['render']($row) !!}
@@ -156,10 +166,16 @@
     <div x-show="viewMode === 'card'">
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             @foreach ($this->records as $row)
-                <div class="bg-white rounded-lg shadow overflow-hidden">
+                @php
+                    $rowId = $row->id ?? $loop->index;
+                @endphp
+                <div class="bg-white rounded-lg shadow overflow-hidden" wire:key="card-row-{{ $rowId }}">
                     <div class="p-4">
                         @foreach ($columns as $col)
-                            <div class="mb-2">
+                            @php
+                                $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
+                            @endphp
+                            <div class="mb-2" wire:key="card-col-{{ $colId }}">
                                 <strong>{{ $col['label'] }}:</strong>
                                 @if(isset($col['render']))
                                     @if(is_callable($col['render']))
