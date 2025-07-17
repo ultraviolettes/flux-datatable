@@ -82,7 +82,7 @@
                         @endphp
                         <flux:table.column
                             x-data="{ sortable: {{ isset($col['sortable']) && $col['sortable'] ? 'true' : 'false' }} }"
-                            align="center"
+                            :align="$col['align'] ?? 'center'"
                             :sortable="isset($col['sortable']) && $col['sortable']"
                             :sorted="$sortBy === $col['field']"
                             :direction="$sortDirection"
@@ -118,7 +118,7 @@
                                 @php
                                     $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
                                 @endphp
-                                <flux:table.cell align="center" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId">
+                                <flux:table.cell :align="$col['align'] ?? 'center'" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId">
                                     @if(isset($col['render']))
                                         @if(is_callable($col['render']))
                                             {!! $col['render']($row) !!}
@@ -162,58 +162,60 @@
         </flux:checkbox.group>
     </div>
 
-    <!-- Card View -->
-    <div x-show="viewMode === 'card'">
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            @foreach ($this->records as $row)
-                @php
-                    $rowId = $row->id ?? $loop->index;
-                @endphp
-                <div class="bg-white rounded-lg shadow overflow-hidden" wire:key="card-row-{{ $rowId }}">
-                    <div class="p-4">
-                        @foreach ($columns as $col)
-                            @php
-                                $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
-                            @endphp
-                            <div class="mb-2" wire:key="card-col-{{ $colId }}">
-                                <strong>{{ $col['label'] }}:</strong>
-                                @if(isset($col['render']))
-                                    @if(is_callable($col['render']))
-                                        {!! $col['render']($row) !!}
-                                    @elseif(is_string($col['render']))
-                                        {!! $col['render'] !!}
+    @if($useViewMode)
+        <!-- Card View -->
+        <div x-show="viewMode === 'card'">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+                @foreach ($this->records as $row)
+                    @php
+                        $rowId = $row->id ?? $loop->index;
+                    @endphp
+                    <div class="bg-white rounded-lg shadow overflow-hidden" wire:key="card-row-{{ $rowId }}">
+                        <div class="p-4">
+                            @foreach ($columns as $index => $col)
+                                @php
+                                    $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
+                                @endphp
+                                <div class="mb-2" wire:key="card-col-{{ $colId }}">
+                                    <strong>{{ $col['label'] }}:</strong>
+                                    @if(isset($col['render']))
+                                        @if(is_callable($col['render']))
+                                            {!! $col['render']($row) !!}
+                                        @elseif(is_string($col['render']))
+                                            {!! $col['render'] !!}
+                                        @else
+                                            {{ data_get($row, $col['field']) }}
+                                        @endif
                                     @else
                                         {{ data_get($row, $col['field']) }}
                                     @endif
-                                @else
-                                    {{ data_get($row, $col['field']) }}
-                                @endif
-                            </div>
-                        @endforeach
+                                </div>
+                            @endforeach
 
-                        @if(count($actions) > 0)
-                            <div class="mt-4 flex justify-end">
-                                <flux:dropdown>
-                                    <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal"></flux:button>
-                                    <flux:menu>
-                                        @foreach($actions as $name => $action)
-                                            <flux:menu.item wire:click="executeAction('{{ $name }}', '{{ $row->id }}')">
-                                                {{ $name }}
-                                            </flux:menu.item>
-                                        @endforeach
-                                    </flux:menu>
-                                </flux:dropdown>
-                            </div>
-                        @endif
+                            @if(count($actions) > 0)
+                                <div class="mt-4 flex justify-end">
+                                    <flux:dropdown>
+                                        <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal"></flux:button>
+                                        <flux:menu>
+                                            @foreach($actions as $name => $action)
+                                                <flux:menu.item wire:click="executeAction('{{ $name }}', '{{ $row->id }}')">
+                                                    {{ $name }}
+                                                </flux:menu.item>
+                                            @endforeach
+                                        </flux:menu>
+                                    </flux:dropdown>
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                </div>
-            @endforeach
-        </div>
-
-        @if($usePagination)
-            <div class="mt-4">
-                <flux:pagination :paginator="$this->records" />
+                @endforeach
             </div>
-        @endif
-    </div>
+
+            @if($usePagination)
+                <div class="mt-4">
+                    <flux:pagination :paginator="$this->records" />
+                </div>
+            @endif
+        </div>
+    @endif
 </div>
