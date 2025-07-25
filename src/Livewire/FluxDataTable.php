@@ -158,7 +158,7 @@ class FluxDataTable extends Component
 
                         $query->where(function ($subQuery) use ($term) {
                             foreach ($this->getSearchableFields() as $field) {
-                                $subQuery->orWhere($field, 'ilike', "%{$term}%");
+                                $subQuery->orWhere($field, 'like', "%{$term}%");
                             }
                         });
                     });
