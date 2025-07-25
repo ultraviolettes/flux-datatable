@@ -54,8 +54,7 @@ class FluxDataTable extends Component
         array $perPageOptions = [],
         array $actions = [],
         array $bulkActions = [],
-        string $viewMode = 'table',
-        array $searchableFields = []
+        string $viewMode = 'table'
     ): void {
         $this->perPageOptions = empty($perPageOptions) ? config('flux-datatable.per_page', [10, 25, 50, 100]) : $perPageOptions;
         $this->perPage = $this->perPageOptions[0] ?? 10;
@@ -63,8 +62,11 @@ class FluxDataTable extends Component
         $this->bulkActions = $bulkActions;
         $this->viewMode = $viewMode;
 
-        if (! empty($searchableFields)) {
-            $this->searchableFields = $searchableFields;
+        $searchableFields = collect($this->columns())
+            ->filter(fn (array $col) => isset($col['searchable']) && $col['searchable']);
+
+        if ($searchableFields->isNotEmpty()) {
+            $this->setSearchableFields($searchableFields->pluck('field')->toArray());
         }
 
         $this->config();
@@ -150,7 +152,17 @@ class FluxDataTable extends Component
         return $this->builder()
             ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
             ->when($this->search, function ($query) {
-                return $query->whereFullText($this->searchableFields, $this->search);
+                collect(explode(' ', $this->search))
+                    ->filter()
+                    ->each(function ($term) use ($query) {
+
+                        $query->where(function ($subQuery) use ($term) {
+                            foreach ($this->getSearchableFields() as $field) {
+                                $subQuery->orWhere($field, 'ilike', "%{$term}%");
+                            }
+                        });
+                    });
+
             })
             ->tap(fn ($query) => $this->applyFilters($query))
             ->paginate($this->perPage);
