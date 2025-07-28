@@ -46,7 +46,7 @@ class FluxDataTable extends Component
      * Fields to search when using the search input.
      * Default is ['name'] for backward compatibility.
      */
-    protected array $searchableFields = ['name'];
+    public array $searchableFields = [];
 
     protected $updatesQueryString = ['search', 'sortBy', 'sortDirection', 'page', 'perPage', 'viewMode', 'filters'];
 
@@ -66,7 +66,7 @@ class FluxDataTable extends Component
             ->filter(fn (array $col) => isset($col['searchable']) && $col['searchable']);
 
         if ($searchableFields->isNotEmpty()) {
-            $this->setSearchableFields($searchableFields->pluck('field')->toArray());
+            $this->searchableFields = $searchableFields->pluck('field')->toArray();
         }
 
         $this->config();
@@ -151,20 +151,18 @@ class FluxDataTable extends Component
         // Handle different types of data sources
         return $this->builder()
             ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
+            ->tap(fn ($query) => $this->applyFilters($query))
             ->when($this->search, function ($query) {
                 collect(explode(' ', $this->search))
                     ->filter()
                     ->each(function ($term) use ($query) {
-
                         $query->where(function ($subQuery) use ($term) {
-                            foreach ($this->getSearchableFields() as $field) {
+                            foreach ($this->searchableFields as $field) {
                                 $subQuery->orWhere($field, 'like', "%{$term}%");
                             }
                         });
                     });
-
             })
-            ->tap(fn ($query) => $this->applyFilters($query))
             ->paginate($this->perPage);
     }
 
@@ -221,27 +219,6 @@ class FluxDataTable extends Component
         }
 
         return $query;
-    }
-
-    /**
-     * Set the fields to search when using the search input.
-     *
-     * @param  array  $fields  Array of field names to search
-     * @return $this
-     */
-    public function setSearchableFields(array $fields): self
-    {
-        $this->searchableFields = $fields;
-
-        return $this;
-    }
-
-    /**
-     * Get the fields that are searchable.
-     */
-    public function getSearchableFields(): array
-    {
-        return $this->searchableFields;
     }
 
     /**
