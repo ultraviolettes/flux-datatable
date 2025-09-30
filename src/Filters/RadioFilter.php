@@ -2,11 +2,11 @@
 
 namespace Ultraviolettes\FluxDataTable\Filters;
 
-use Illuminate\View\View;
-
-final class SelectFilter extends Filter
+final class RadioFilter extends Filter
 {
     protected array $options = [];
+
+    public ?string $variant = null;
 
     /**
      * Set the options for the select filter
@@ -20,6 +20,13 @@ final class SelectFilter extends Filter
         return $this;
     }
 
+    public function variant(string $variant): self
+    {
+        $this->variant = $variant;
+
+        return $this;
+    }
+
     /**
      * Get the options for the select filter
      */
@@ -28,15 +35,13 @@ final class SelectFilter extends Filter
         return $this->options;
     }
 
-    /**
-     * Render the filter
-     */
-    public function render(): View
+    public function render()
     {
-        return view('flux-datatable::filters.select', [ // @phpstan-ignore-line
+        return view('flux-datatable::filters.radio', [ // @phpstan-ignore-line
             'name' => $this->name,
             'field' => $this->field,
             'options' => $this->options,
+            'variant' => $this->variant,
         ]);
     }
 

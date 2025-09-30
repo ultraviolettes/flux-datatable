@@ -7,21 +7,7 @@ use Illuminate\View\View;
 
 final class DateRangeFilter extends Filter
 {
-    protected ?\Closure $queryCallback = null;
-
     protected array $config = [];
-
-    /**
-     * Set a custom query callback for the filter.
-     *
-     * @return $this
-     */
-    public function query(callable $callback): self
-    {
-        $this->queryCallback = $callback;
-
-        return $this;
-    }
 
     /**
      * Set configuration options for the date range picker.
@@ -52,9 +38,8 @@ final class DateRangeFilter extends Filter
      *
      * @param  Builder  $query
      * @param  mixed  $value
-     * @return Builder
      */
-    public function apply($query, $value)
+    public function apply($query, $value): Builder
     {
         if (empty($value) || ! is_array($value)) {
             return $query;

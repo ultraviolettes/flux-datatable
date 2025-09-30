@@ -7,20 +7,6 @@ use Illuminate\View\View;
 
 final class DateFilter extends Filter
 {
-    protected ?\Closure $queryCallback = null;
-
-    /**
-     * Set a custom query callback for the filter.
-     *
-     * @return $this
-     */
-    public function query(callable $callback): self
-    {
-        $this->queryCallback = $callback;
-
-        return $this;
-    }
-
     /**
      * Render the filter
      */
@@ -37,9 +23,8 @@ final class DateFilter extends Filter
      *
      * @param  Builder  $query
      * @param  mixed  $value
-     * @return Builder
      */
-    public function apply($query, $value)
+    public function apply($query, $value): Builder
     {
         if (empty($value)) {
             return $query;
