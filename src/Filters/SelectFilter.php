@@ -2,13 +2,11 @@
 
 namespace Ultraviolettes\FluxDataTable\Filters;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
 final class SelectFilter extends Filter
 {
     protected array $options = [];
-
 
     /**
      * Set the options for the select filter

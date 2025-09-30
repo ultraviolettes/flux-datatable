@@ -7,7 +7,6 @@ use Illuminate\View\View;
 
 final class DateFilter extends Filter
 {
-
     /**
      * Render the filter
      */
@@ -24,7 +23,6 @@ final class DateFilter extends Filter
      *
      * @param  Builder  $query
      * @param  mixed  $value
-     * @return Builder
      */
     public function apply($query, $value): Builder
     {

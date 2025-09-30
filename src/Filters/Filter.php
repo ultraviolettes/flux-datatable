@@ -20,7 +20,6 @@ abstract class Filter
         $this->field = $field;
     }
 
-
     public function getName(): string
     {
         return $this->name;
@@ -48,7 +47,6 @@ abstract class Filter
      *
      * @param  Builder  $query
      * @param  mixed  $value
-     * @return Builder
      */
     public function apply($query, $value): Builder
     {
@@ -71,6 +69,5 @@ abstract class Filter
      *
      * @return static
      */
-    abstract static function make(string $name, string $field): self;
-
+    abstract public static function make(string $name, string $field): self;
 }

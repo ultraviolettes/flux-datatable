@@ -2,12 +2,8 @@
 
 namespace Ultraviolettes\FluxDataTable\Filters;
 
-use Illuminate\Database\Eloquent\Builder;
-use Ultraviolettes\FluxDataTable\Filters\Filter;
-
 final class RadioFilter extends Filter
 {
-
     protected array $options = [];
 
     public ?string $variant = null;
@@ -23,14 +19,13 @@ final class RadioFilter extends Filter
 
         return $this;
     }
-    
+
     public function variant(string $variant): self
     {
         $this->variant = $variant;
 
         return $this;
     }
-
 
     /**
      * Get the options for the select filter

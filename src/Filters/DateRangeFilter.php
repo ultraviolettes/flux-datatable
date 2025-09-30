@@ -7,9 +7,7 @@ use Illuminate\View\View;
 
 final class DateRangeFilter extends Filter
 {
-
     protected array $config = [];
-
 
     /**
      * Set configuration options for the date range picker.
@@ -40,7 +38,6 @@ final class DateRangeFilter extends Filter
      *
      * @param  Builder  $query
      * @param  mixed  $value
-     * @return Builder
      */
     public function apply($query, $value): Builder
     {
