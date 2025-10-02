@@ -3,7 +3,6 @@
 namespace Ultraviolettes\FluxDataTable;
 
 use Illuminate\Support\Str;
-use phpDocumentor\Reflection\Types\Callable_;
 
 class BulkAction
 {

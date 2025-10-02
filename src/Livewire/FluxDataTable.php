@@ -192,6 +192,7 @@ class FluxDataTable extends Component
     public function bulkActionLabel(string $bulkActionLabel): self
     {
         $this->bulkActionLabel = $bulkActionLabel;
+
         return $this;
     }
 
