@@ -10,6 +10,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Ultraviolettes\FluxDataTable\BulkAction;
 use Ultraviolettes\FluxDataTable\DataObject\WidgetDataObject;
 use Ultraviolettes\FluxDataTable\Traits\WithConfig;
 
@@ -32,15 +33,13 @@ class FluxDataTable extends Component
 
     public array $actions = [];
 
-    public array $bulkActions = [];
-
     public array $selected = [];
+
+    public string $bulkActionLabel = '';
 
     public bool $selectAll = false;
 
     public string $viewMode = 'table';
-
-    public array $filters = [];
 
     /**
      * Fields to search when using the search input.
@@ -53,13 +52,11 @@ class FluxDataTable extends Component
     public function mount(
         array $perPageOptions = [],
         array $actions = [],
-        array $bulkActions = [],
         string $viewMode = 'table'
     ): void {
         $this->perPageOptions = empty($perPageOptions) ? config('flux-datatable.per_page', [10, 25, 50, 100]) : $perPageOptions;
         $this->perPage = $this->perPageOptions[0] ?? 10;
         $this->actions = $actions;
-        $this->bulkActions = $bulkActions;
         $this->viewMode = $viewMode;
 
         $searchableFields = collect($this->columns())
@@ -97,15 +94,6 @@ class FluxDataTable extends Component
     {
         if (isset($this->actions[$actionName]) && is_callable($this->actions[$actionName])) {
             $this->actions[$actionName]($rowId);
-        }
-    }
-
-    public function executeBulkAction(string $actionName): void
-    {
-        if (isset($this->bulkActions[$actionName]) && is_callable($this->bulkActions[$actionName])) {
-            $this->bulkActions[$actionName]($this->selected);
-            $this->selected = [];
-            $this->selectAll = false;
         }
     }
 
@@ -172,6 +160,7 @@ class FluxDataTable extends Component
         return view('flux-datatable::livewire.table', [ // @phpstan-ignore-line
             'columns' => $this->columns(),
             'tableFilters' => $this->filters(),
+            'bulkActions' => $this->bulkActions(),
         ]);
     }
 
@@ -187,6 +176,36 @@ class FluxDataTable extends Component
     public function filters(): array
     {
         return [];
+    }
+
+    /**
+     * Define the bulkAction for the datatable.
+     * Child classes should override this method to define filters.
+     *
+     * @return Collection<BulkAction>
+     */
+    public function bulkActions(): Collection
+    {
+        return collect();
+    }
+
+    public function bulkActionLabel(string $bulkActionLabel): self
+    {
+        $this->bulkActionLabel = $bulkActionLabel;
+
+        return $this;
+    }
+
+    public function setBulkActionLabel(string $bulkActionLabel): void
+    {
+        $this->bulkActionLabel = $bulkActionLabel;
+    }
+
+    public function executeBulkAction(string $actionName): void
+    {
+        if ($action = $this->bulkActions()->firstWhere('slug', $actionName)) {
+            $action->apply($this->selected);
+        }
     }
 
     /**

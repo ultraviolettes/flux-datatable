@@ -16,7 +16,8 @@ class FluxDataTableServiceProvider extends PackageServiceProvider
         $package->name('flux-datatable')
             ->hasViews('flux-datatable')
             ->hasViewComponents('flux-datatable', Widget::class)
-            ->hasConfigFile('flux-datatable');
+            ->hasConfigFile('flux-datatable')
+            ->hasTranslations();
 
         $this->registerLivewireComponents();
     }

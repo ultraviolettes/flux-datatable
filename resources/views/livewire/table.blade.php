@@ -48,18 +48,40 @@
 
     <div class="m-8"></div>
 
-    @if(count($bulkActions) > 0)
+    @if($bulkActions->isNotEmpty())
         <div class="mb-4">
             <flux:dropdown>
                 <flux:button size="sm" :disabled="count($selected) === 0">
-                    Bulk Actions
+                    {{ $bulkActionLabel }}
                 </flux:button>
 
-                <flux:menu>
-                    @foreach($bulkActions as $name => $action)
-                        <flux:menu.item wire:click="executeBulkAction('{{ $name }}')">
-                            {{ $name }}
-                        </flux:menu.item>
+                <flux:menu >
+                    @foreach($bulkActions as $action)
+                        @if($action->requiresConfirmation)
+                            <flux:modal.trigger name="confirm-modal-{{$action->slug}}">
+                                <flux:menu.item :icon="$action->icon" keep-open>{{ $action->label }}</flux:menu.item>
+                            </flux:modal.trigger>
+                            <flux:modal name="confirm-modal-{{$action->slug}}" class="space-y-6 text-center">
+
+                                <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
+
+                                    <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
+                                </div>
+
+                                <flux:text>{{ __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
+
+                                <div>
+                                    <flux:modal.close>
+                                        <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
+                                    </flux:modal.close>
+                                    <flux:button  wire:click="executeBulkAction('{{ $action->slug }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
+                                </div>
+                            </flux:modal>
+                        @else
+                            <flux:menu.item :icon="$action->icon" wire:click="executeBulkAction('{{ $action->slug }}')">
+                                {{ $action->label }}
+                            </flux:menu.item>
+                        @endif
                     @endforeach
                 </flux:menu>
             </flux:dropdown>
