@@ -12,6 +12,7 @@ trait WithConfig
     {
         $this->setUsePagination(config('flux-datatable.flux_ui.use_pagination', true));
         $this->setUseViewMode(config('flux-datatable.flux_ui.use_view_mode', false));
+        $this->setBulkActionLabel(__('flux-datatable::flux-datatable.bulk_action_label'));
     }
 
     public function setUsePagination(bool $value): void
