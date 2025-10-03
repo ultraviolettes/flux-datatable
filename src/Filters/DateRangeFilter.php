@@ -51,11 +51,7 @@ final class DateRangeFilter extends Filter
         }
 
         // Default behavior: filter by date range
-        if (isset($value[0]) && isset($value[1])) {
-            return $query->whereBetween($this->field, [$value[0], $value[1]]);
-        }
-
-        return $query;
+        return $query->whereBetween($this->field, $value);
     }
 
     /**

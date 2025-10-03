@@ -31,6 +31,8 @@ class FluxDataTable extends Component
 
     public int $perPage = 10;
 
+    public array $filters = [];
+
     public array $actions = [];
 
     public array $selected = [];
