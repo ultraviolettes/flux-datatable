@@ -33,7 +33,7 @@
     }
     @endphp--}}
 
-    <flux:date-picker mode="range" wire:model.live="filters.{$field}">
+    <flux:date-picker mode="range" wire:model.live="filters.{{$field}}">
         @if(isset($config['mode']) && $config['mode'] === 'input')
             <x-slot name="trigger">
                 <div class="flex flex-col sm:flex-row gap-6 sm:gap-4">
