@@ -6,6 +6,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -148,7 +149,18 @@ class FluxDataTable extends Component
                     ->each(function ($term) use ($query) {
                         $query->where(function ($subQuery) use ($term) {
                             foreach ($this->searchableFields as $field) {
-                                $subQuery->orWhere($field, 'like', "%{$term}%");
+
+                                if (Str::contains($field, '.')) {
+                                    // Chercher sur la relation
+                                    $relation = Str::before($field, '.');
+                                    $relationField = Str::after($field, '.');
+                                    $subQuery->orWhereHas($relation, function ($subQuery) use ($relationField, $term) {
+                                        $subQuery->where($relationField, 'ilike', "%{$term}%");
+                                    });
+                                } else {
+                                    $subQuery->orWhere($field, 'ilike', "%{$term}%");
+                                }
+
                             }
                         });
                     });
