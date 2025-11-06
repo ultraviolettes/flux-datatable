@@ -150,7 +150,7 @@ class FluxDataTable extends Component
                         $query->where(function ($subQuery) use ($term) {
                             foreach ($this->searchableFields as $field) {
 
-                                if( Str::contains($field, '.')){
+                                if (Str::contains($field, '.')) {
                                     // Chercher sur la relation
                                     $relation = Str::before($field, '.');
                                     $relationField = Str::after($field, '.');
