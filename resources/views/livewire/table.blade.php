@@ -16,7 +16,7 @@
                 <flux:button variant="filled">+ Filtres</flux:button>
             </flux:modal.trigger>
         @endif
-        <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs"/>
+        <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs" clearable />
 
         @if($useViewMode)
             <flux:button.group>
