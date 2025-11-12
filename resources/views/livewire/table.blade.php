@@ -13,7 +13,7 @@
     <div class="flex flex-row gap-4 pt-4">
         @if($tableFilters)
             <flux:modal.trigger name="filter-modal">
-                <flux:button variant="filled">+ Filtres</flux:button>
+                <flux:button variant="filled" icon="plus">{{ __('flux-datatable::flux-datatable.filters')  }}</flux:button>
             </flux:modal.trigger>
         @endif
         <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs" clearable />
@@ -29,7 +29,7 @@
             <flux:modal name="filter-modal" class="md:w-96" variant="flyout">
                 <div class="space-y-6">
                     <flux:fieldset>
-                        <flux:legend>Filtres</flux:legend>
+                        <flux:legend>{{ __('flux-datatable::flux-datatable.filters')  }}</flux:legend>
                         <div class="space-y-6">
                             @foreach($tableFilters as $field => $filter)
                                 {!! $filter->render() !!}
@@ -38,8 +38,8 @@
                     </flux:fieldset>
                     <div class="flex">
                         <flux:spacer />
-                        <flux:button wire:click="resetFilters" variant="ghost">Réinitialiser</flux:button>
-                        <flux:button x-on:click="$flux.modals().close()" variant="primary">Appliquer les filtres</flux:button>
+                        <flux:button wire:click="resetFilters" variant="ghost">{{ __('flux-datatable::flux-datatable.reset')  }}</flux:button>
+                        <flux:button x-on:click="$flux.modals().close()" variant="primary">{{ __('flux-datatable::flux-datatable.apply_filters') }}</flux:button>
                     </div>
                 </div>
             </flux:modal>
@@ -118,7 +118,7 @@
 
                     @if(count($actions) > 0)
                         <flux:table.column>
-                            Actions
+                            {{ __('flux-datatable::flux-datatable.action') }}
                         </flux:table.column>
                     @endif
                 </flux:table.columns>
@@ -175,7 +175,7 @@
                     @if(count($this->records) === 0)
                         <flux:table.row>
                             <flux:table.cell colspan="{{ count($columns) + (count($bulkActions) > 0 ? 1 : 0) + (count($actions) > 0 ? 1 : 0) }}" class="text-center py-4">
-                                No records found.
+                                {{ __('flux-datatable::flux-datatable.no_record_found')  }}
                             </flux:table.cell>
                         </flux:table.row>
                     @endif

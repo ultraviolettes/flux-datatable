@@ -5,4 +5,9 @@ return [
     'bulk_action_text' => 'Êtes-vous sûr de vouloir faire cela ?',
     'cancel' => 'Annuler',
     'confirm' => 'Confirmer',
+    'filters' => 'Filtres',
+    'apply_filters' => 'Appliquer les filtres',
+    'reset' => 'Réinitialiser',
+    'actions' => 'Actions',
+    'no_record_found' => 'Aucun élément trouvé',
 ];
