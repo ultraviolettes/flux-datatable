@@ -9,5 +9,5 @@ return [
     'apply_filters' => 'Apply filters',
     'reset' => 'Reset',
     'actions' => 'Actions',
-    'no_record_found' => 'No record found'
+    'no_record_found' => 'No record found',
 ];
