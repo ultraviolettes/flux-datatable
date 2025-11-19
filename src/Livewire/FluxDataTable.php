@@ -281,6 +281,7 @@ class FluxDataTable extends Component
         // 1. Si utilisateur connecté, on regarde dans le cache permanent
         if (Auth::check() && Cache::has($key)) {
             $this->perPage = (int) Cache::get($key);
+
             return;
         }
 
@@ -309,9 +310,9 @@ class FluxDataTable extends Component
     protected function getPerPageKey(): string
     {
         $name = static::class;
-        $suffix = Auth::check() ? '_user_' . Auth::id() : '_guest';
+        $suffix = Auth::check() ? '_user_'.Auth::id() : '_guest';
 
-        return 'flux_datatable_per_page_' . md5($name) . $suffix;
+        return 'flux_datatable_per_page_'.md5($name).$suffix;
     }
 
     /**

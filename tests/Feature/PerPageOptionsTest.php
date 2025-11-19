@@ -1,13 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\GenericUser;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Session;
 use Livewire\Livewire;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\Item;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\TestTable;
-use function Pest\Laravel\{actingAs};
+
+use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
     // Seed a bunch of items so pagination has an effect
@@ -60,7 +61,7 @@ it('met à jour perPage et conserve la valeur', function () {
 });
 
 it('restaure la préférence perPage depuis la session pour un invité', function () {
-    $key = 'flux_datatable_per_page_' . md5(TestTable::class) . '_guest';
+    $key = 'flux_datatable_per_page_'.md5(TestTable::class).'_guest';
     Session::put($key, 25);
 
     Livewire::test(TestTable::class, [
@@ -72,7 +73,7 @@ it('restaure la préférence perPage depuis le cache pour un utilisateur authent
     $user = new GenericUser(['id' => 123]);
     actingAs($user);
 
-    $key = 'flux_datatable_per_page_' . md5(TestTable::class) . '_user_123';
+    $key = 'flux_datatable_per_page_'.md5(TestTable::class).'_user_123';
     Cache::forever($key, 50);
 
     Livewire::test(TestTable::class, [
@@ -84,10 +85,10 @@ it('la query string perPage a priorité sur cache et session', function () {
     $user = new GenericUser(['id' => 456]);
     actingAs($user);
 
-    $guestKey = 'flux_datatable_per_page_' . md5(TestTable::class) . '_guest';
+    $guestKey = 'flux_datatable_per_page_'.md5(TestTable::class).'_guest';
     Session::put($guestKey, 25);
 
-    $key = 'flux_datatable_per_page_' . md5(TestTable::class) . '_user_456';
+    $key = 'flux_datatable_per_page_'.md5(TestTable::class).'_user_456';
     Cache::forever($key, 50);
 
     Livewire::withQueryParams(['perPage' => 20])
@@ -99,10 +100,10 @@ it('la query string perPage a priorité sur cache et session', function () {
 
 it('update perPage persiste en session (invité) et en cache (auth)', function () {
     // invité
-    $guestKey = 'flux_datatable_per_page_' . md5(TestTable::class) . '_guest';
+    $guestKey = 'flux_datatable_per_page_'.md5(TestTable::class).'_guest';
     Livewire::test(TestTable::class, [
-            'perPageOptions' => [10, 25],
-        ])
+        'perPageOptions' => [10, 25],
+    ])
         ->set('perPage', 25);
 
     expect(session()->get($guestKey))->toBe(25);
@@ -111,7 +112,7 @@ it('update perPage persiste en session (invité) et en cache (auth)', function (
     $user = new GenericUser(['id' => 789]);
     actingAs($user);
 
-    $userKey = 'flux_datatable_per_page_' . md5(TestTable::class) . '_user_789';
+    $userKey = 'flux_datatable_per_page_'.md5(TestTable::class).'_user_789';
     Livewire::test(TestTable::class, [
         'perPageOptions' => [10, 25],
     ])->set('perPage', 25);
