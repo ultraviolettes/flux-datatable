@@ -1,4 +1,4 @@
-<div x-data="{ viewMode: @entangle('viewMode') }">
+<div x-data="{ viewMode: @entangle('viewMode') }" class="space-y-8">
 
     @if($this->headerWidgets->isNotEmpty())
 
@@ -10,43 +10,57 @@
 
     @endif
 
-    <div class="flex flex-row gap-4 pt-4">
-        @if($tableFilters)
-            <flux:modal.trigger name="filter-modal">
-                <flux:button variant="filled" icon="plus">{{ __('flux-datatable::flux-datatable.filters')  }}</flux:button>
-            </flux:modal.trigger>
-        @endif
-        <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs" clearable />
 
-        @if($useViewMode)
-            <flux:button.group>
-                <flux:button icon="table-cells" x-bind:class="{ 'bg-primary': viewMode === 'table' }" @click="viewMode = 'table'"></flux:button>
-                <flux:button icon="squares-2x2" x-bind:class="{ 'bg-primary-500': viewMode === 'card' }" @click="viewMode = 'card'"></flux:button>
-            </flux:button.group>
-        @endif
+    <div class="flex justify-between items-end gap-4">
 
-        @if($tableFilters)
-            <flux:modal name="filter-modal" class="md:w-96" variant="flyout">
-                <div class="space-y-6">
-                    <flux:fieldset>
-                        <flux:legend>{{ __('flux-datatable::flux-datatable.filters')  }}</flux:legend>
-                        <div class="space-y-6">
-                            @foreach($tableFilters as $field => $filter)
-                                {!! $filter->render() !!}
-                            @endforeach
+        <div class="flex flex-row gap-4">
+            @if($tableFilters)
+                <flux:modal.trigger name="filter-modal">
+                    <flux:button variant="filled" icon="plus">{{ __('flux-datatable::flux-datatable.filters')  }}</flux:button>
+                </flux:modal.trigger>
+            @endif
+            <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs" clearable />
+
+            @if($useViewMode)
+                <flux:button.group>
+                    <flux:button icon="table-cells" x-bind:class="{ 'bg-primary': viewMode === 'table' }" @click="viewMode = 'table'"></flux:button>
+                    <flux:button icon="squares-2x2" x-bind:class="{ 'bg-primary-500': viewMode === 'card' }" @click="viewMode = 'card'"></flux:button>
+                </flux:button.group>
+            @endif
+
+            @if($tableFilters)
+                <flux:modal name="filter-modal" class="md:w-96" variant="flyout">
+                    <div class="space-y-6">
+                        <flux:fieldset>
+                            <flux:legend>{{ __('flux-datatable::flux-datatable.filters')  }}</flux:legend>
+                            <div class="space-y-6">
+                                @foreach($tableFilters as $field => $filter)
+                                    {!! $filter->render() !!}
+                                @endforeach
+                            </div>
+                        </flux:fieldset>
+                        <div class="flex">
+                            <flux:spacer />
+                            <flux:button wire:click="resetFilters" variant="ghost">{{ __('flux-datatable::flux-datatable.reset')  }}</flux:button>
+                            <flux:button x-on:click="$flux.modals().close()" variant="primary">{{ __('flux-datatable::flux-datatable.apply_filters') }}</flux:button>
                         </div>
-                    </flux:fieldset>
-                    <div class="flex">
-                        <flux:spacer />
-                        <flux:button wire:click="resetFilters" variant="ghost">{{ __('flux-datatable::flux-datatable.reset')  }}</flux:button>
-                        <flux:button x-on:click="$flux.modals().close()" variant="primary">{{ __('flux-datatable::flux-datatable.apply_filters') }}</flux:button>
                     </div>
-                </div>
-            </flux:modal>
-        @endif
+                </flux:modal>
+            @endif
+
+        </div>
+        <div>
+
+            @if($usePagination)
+                <flux:select wire:model.live="perPage"  class="justify-self-end max-w-xs">
+                    @foreach($perPageOptions as $option)
+                        <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
+        </div>
     </div>
 
-    <div class="m-8"></div>
 
     @if($bulkActions->isNotEmpty())
         <div class="mb-4">
