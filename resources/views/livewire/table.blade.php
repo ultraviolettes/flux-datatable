@@ -115,6 +115,8 @@
                     @foreach ($columns as $index => $col)
                         @php
                             $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
+                            $sticky = $col['sticky'] ?? false;
+                            $class = $col['class'] ?? null;
                         @endphp
                         <flux:table.column
                             x-data="{ sortable: {{ isset($col['sortable']) && $col['sortable'] ? 'true' : 'false' }} }"
@@ -122,9 +124,11 @@
                             :sortable="isset($col['sortable']) && $col['sortable']"
                             :sorted="$sortBy === $col['field']"
                             :direction="$sortDirection"
+                            :sticky="$sticky"
                             x-bind:class="{'cursor-pointer': sortable }"
                             x-on:click="sortable ? $wire.sort('{{ $col['field'] }}') : null"
                             :wire:key="'table-th-' . $colId"
+                            @class([$class => $class])
                         >
                             {{ $col['label'] }}
                         </flux:table.column>
@@ -153,8 +157,10 @@
                             @foreach ($columns as $index => $col)
                                 @php
                                     $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
+                                    $sticky = $col['sticky'] ?? false;
+                                    $class = $col['class'] ?? null;
                                 @endphp
-                                <flux:table.cell :align="$col['align'] ?? 'center'" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId">
+                                <flux:table.cell :align="$col['align'] ?? 'center'" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId" :sticky="$sticky" @class([$class => $class])>
                                     @if(isset($col['render']))
                                         @if(is_callable($col['render']))
                                             {!! $col['render']($row) !!}
