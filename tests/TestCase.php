@@ -29,10 +29,18 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app): void
     {
-        config()->set('database.default', 'testing');
+        // Fix: Some tests render views that rely on encryption (e.g. @csrf),
+        // so we must provide an application key for Orchestra Testbench.
+        // We generate a fresh random key for the in-memory test application.
+        config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
 
-        foreach (File::allFiles(database_path('/migrations')) as $migration) {
-            (include $migration->getRealPath())->up();
+        config()->set('database.default', 'testing');
+        // On charge seulement les migrations dédiées aux tests pour ne rien imposer aux applications consommatrices du package
+        $migrationsPath = __DIR__.'/database/migrations';
+        if (is_dir($migrationsPath)) {
+            foreach (File::allFiles($migrationsPath) as $migration) {
+                (include $migration->getRealPath())->up();
+            }
         }
     }
 }

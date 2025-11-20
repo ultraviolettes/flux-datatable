@@ -6,11 +6,15 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Ultraviolettes\FluxDataTable\BulkAction;
 use Ultraviolettes\FluxDataTable\DataObject\WidgetDataObject;
 use Ultraviolettes\FluxDataTable\Traits\WithConfig;
@@ -30,6 +34,7 @@ class FluxDataTable extends Component
     #[Url(except: 'asc')]
     public string $sortDirection = 'asc';
 
+    #[Url(except: 10)]
     public int $perPage = 10;
 
     public array $filters = [];
@@ -58,7 +63,17 @@ class FluxDataTable extends Component
         string $viewMode = 'table'
     ): void {
         $this->perPageOptions = empty($perPageOptions) ? config('flux-datatable.per_page', [10, 25, 50, 100]) : $perPageOptions;
-        $this->perPage = $this->perPageOptions[0] ?? 10;
+
+        // Logique de persistence (Priorité : URL > Cache (User) > Session)
+        if (! request()->query('perPage')) {
+            $this->restorePerPagePreference();
+        }
+
+        // Validation : on s'assure que la valeur est valide
+        if (! in_array($this->perPage, $this->perPageOptions)) {
+            $this->perPage = $this->perPageOptions[0] ?? 10;
+        }
+
         $this->actions = $actions;
         $this->viewMode = $viewMode;
 
@@ -88,8 +103,9 @@ class FluxDataTable extends Component
         $this->resetPage();
     }
 
-    public function updatingPerPage(): void
+    public function updatedPerPage($value): void
     {
+        $this->savePerPagePreference($value);
         $this->resetPage();
     }
 
@@ -252,6 +268,51 @@ class FluxDataTable extends Component
         }
 
         return $query;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    protected function restorePerPagePreference(): void
+    {
+        $key = $this->getPerPageKey();
+
+        // 1. Si utilisateur connecté, on regarde dans le cache permanent
+        if (Auth::check() && Cache::has($key)) {
+            $this->perPage = (int) Cache::get($key);
+
+            return;
+        }
+
+        // 2. Sinon (ou si pas de cache), on regarde la session (invités)
+        if (session()->has($key)) {
+            $this->perPage = (int) session()->get($key);
+        }
+    }
+
+    protected function savePerPagePreference($value): void
+    {
+        $key = $this->getPerPageKey();
+
+        // 1. Toujours en session (pour la navigation immédiate)
+        session()->put($key, $value);
+
+        // 2. Si utilisateur connecté, on sauvegarde "pour toujours" dans le cache
+        if (Auth::check()) {
+            Cache::forever($key, $value);
+        }
+    }
+
+    /**
+     * Generate a unique key based on table name AND user ID if authenticated.
+     */
+    protected function getPerPageKey(): string
+    {
+        $name = static::class;
+        $suffix = Auth::check() ? '_user_'.Auth::id() : '_guest';
+
+        return 'flux_datatable_per_page_'.md5($name).$suffix;
     }
 
     /**
