@@ -28,6 +28,11 @@ final class SelectFilter extends Filter
         return $this->options;
     }
 
+    public function getKeyLabel(string $key): string
+    {
+        return $this->options[$key];
+    }
+
     /**
      * Render the filter
      */
