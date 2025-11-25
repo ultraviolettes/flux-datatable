@@ -49,6 +49,7 @@
             @endif
 
         </div>
+
         <div>
 
             @if($usePagination)
@@ -60,6 +61,20 @@
             @endif
         </div>
     </div>
+
+        @if(!empty($this->filters))
+            <div class="flex gap-2">
+                @foreach($this->filters as $filterField => $filterValue)
+                    @php
+                        $filter = $tableFilters[$filterField];
+                        $label = $filter->getKeyLabel($filterValue);
+                        $name = $filter->getName();
+                    @endphp
+
+                    <flux:badge>{{ $name }} : {{ $label }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
+                @endforeach
+            </div>
+        @endif
 
 
     @if($bulkActions->isNotEmpty())

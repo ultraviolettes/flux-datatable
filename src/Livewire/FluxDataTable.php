@@ -256,6 +256,11 @@ class FluxDataTable extends Component
         $this->resetPage();
     }
 
+    public function removeFilter($filterField): void
+    {
+        unset($this->filters[$filterField]);
+    }
+
     /**
      * Apply filters to the query.
      */

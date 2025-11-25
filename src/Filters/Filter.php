@@ -3,6 +3,7 @@
 namespace Ultraviolettes\FluxDataTable\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 abstract class Filter
 {
@@ -60,6 +61,11 @@ abstract class Filter
         }
 
         return $query->where($this->field, $value);
+    }
+
+    public function getKeyLabel(string $key): string
+    {
+        return Str::ucfirst($key);
     }
 
     abstract public function render();
