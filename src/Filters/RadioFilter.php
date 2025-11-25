@@ -34,7 +34,7 @@ final class RadioFilter extends Filter
     {
         return $this->options;
     }
-    
+
     public function getKeyLabel(string $key): string
     {
         return $this->options[$key];
