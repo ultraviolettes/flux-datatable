@@ -62,19 +62,19 @@
         </div>
     </div>
 
-        @if(!empty($this->filters))
-            <div class="flex gap-2">
-                @foreach($this->filters as $filterField => $filterValue)
-                    @php
-                        $filter = $tableFilters[$filterField];
-                        $label = $filter->getKeyLabel($filterValue);
-                        $name = $filter->getName();
-                    @endphp
+    @if(!empty($this->filters))
+        <div class="flex gap-2">
+            @foreach($this->filters as $filterField => $filterValue)
+                @php
+                    $filter = $tableFilters[$filterField];
+                    $label = $filter->getKeyLabel($filterValue);
+                    $name = $filter->getName();
+                @endphp
 
-                    <flux:badge>{{ $name }} : {{ $label }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
-                @endforeach
-            </div>
-        @endif
+                <flux:badge>{{ $name }} : {{ $label }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
+            @endforeach
+        </div>
+    @endif
 
 
     @if($bulkActions->isNotEmpty())
@@ -145,7 +145,7 @@
                             :wire:key="'table-th-' . $colId"
                             @class([$class => $class])
                         >
-                            @if(is_callable($col['label']))
+                            @if($col['label'] instanceof \Closure)
                                 {!! $col['label']() !!}
                             @else
                                 {{ $col['label'] }}
@@ -181,7 +181,7 @@
                                 @endphp
                                 <flux:table.cell :align="$col['align'] ?? 'center'" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId" :sticky="$sticky" @class([$class => $class])>
                                     @if(isset($col['render']))
-                                        @if(is_callable($col['render']))
+                                        @if($col['render'] instanceof \Closure)
                                             {!! $col['render']($row) !!}
                                         @elseif(is_string($col['render']))
                                             {!! $col['render'] !!}
@@ -240,7 +240,7 @@
                                 <div class="mb-2" wire:key="card-col-{{ $colId }}">
                                     <strong>{{ $col['label'] }}:</strong>
                                     @if(isset($col['render']))
-                                        @if(is_callable($col['render']))
+                                        @if($col['render'] instanceof \Closure)
                                             {!! $col['render']($row) !!}
                                         @elseif(is_string($col['render']))
                                             {!! $col['render'] !!}
