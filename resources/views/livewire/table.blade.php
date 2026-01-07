@@ -145,7 +145,11 @@
                             :wire:key="'table-th-' . $colId"
                             @class([$class => $class])
                         >
-                            {{ $col['label'] }}
+                            @if(is_callable($col['label']))
+                                {!! $col['label']() !!}
+                            @else
+                                {{ $col['label'] }}
+                            @endif
                         </flux:table.column>
                     @endforeach
 
