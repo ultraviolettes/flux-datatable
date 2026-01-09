@@ -84,6 +84,13 @@ class FluxDataTable extends Component
             $this->searchableFields = $searchableFields->pluck('field')->toArray();
         }
 
+        // Filter default value
+        foreach ($this->filters() as $filter) {
+            if ($filter->defaultValue) {
+                $this->filters[$filter->getField()] = $filter->defaultValue;
+            }
+        }
+
         $this->config();
     }
 
