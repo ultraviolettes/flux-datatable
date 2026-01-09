@@ -15,6 +15,10 @@ abstract class Filter
 
     protected array $options = [];
 
+    public ?string $defaultValue = null;
+
+    public bool $showPills = true;
+
     public function __construct(string $name, string $field)
     {
         $this->name = $name;
@@ -66,6 +70,18 @@ abstract class Filter
     public function getKeyLabel(string $key): string
     {
         return Str::ucfirst($key);
+    }
+
+    public function defaultValue(string $defaultValue): self
+    {
+        $this->defaultValue = $defaultValue;
+        return $this;
+    }
+
+    public function showPills(bool $show): self
+    {
+        $this->showPills = $show;
+        return $this;
     }
 
     abstract public function render();

@@ -69,9 +69,12 @@
                     $filter = $tableFilters[$filterField];
                     $label = $filter->getKeyLabel($filterValue);
                     $name = $filter->getName();
+                    $showPills = $filter->showPills;
                 @endphp
 
-                <flux:badge>{{ $name }} : {{ $label }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
+                @if($showPills)
+                    <flux:badge>{{ $name }} : {{ $label }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
+                @endif
             @endforeach
         </div>
     @endif
