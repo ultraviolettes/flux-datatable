@@ -75,12 +75,14 @@ abstract class Filter
     public function defaultValue(string $defaultValue): self
     {
         $this->defaultValue = $defaultValue;
+
         return $this;
     }
 
     public function showPills(bool $show): self
     {
         $this->showPills = $show;
+
         return $this;
     }
 

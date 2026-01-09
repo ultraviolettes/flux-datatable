@@ -86,7 +86,7 @@ class FluxDataTable extends Component
 
         // Filter default value
         foreach ($this->filters() as $filter) {
-            if($filter->defaultValue ){
+            if ($filter->defaultValue) {
                 $this->filters[$filter->getField()] = $filter->defaultValue;
             }
         }
