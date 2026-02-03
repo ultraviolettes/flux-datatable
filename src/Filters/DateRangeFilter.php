@@ -54,7 +54,7 @@ final class DateRangeFilter extends Filter
         return $query->whereBetween($this->field, $value);
     }
 
-    public function getKeyLabel( $key): string
+    public function getKeyLabel($key): string
     {
         return implode(' - ', $key);
     }
