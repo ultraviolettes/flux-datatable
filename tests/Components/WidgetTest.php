@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Number;
 use Ultraviolettes\FluxDataTable\DataObject\WidgetDataObject;
 
 it('flux datatable widget render with no error', function () {
@@ -17,5 +18,5 @@ it('flux datatable widget render with currency', function () {
         ['widget' => new WidgetDataObject(label: 'Super', value: '10')->isCurrency()]
     );
 
-    $view->assertSee(\Illuminate\Support\Number::currency(10));
+    $view->assertSee(Number::currency(10));
 });

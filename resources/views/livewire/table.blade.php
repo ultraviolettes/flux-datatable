@@ -19,7 +19,7 @@
                     <flux:button variant="filled" icon="plus">{{ __('flux-datatable::flux-datatable.filters')  }}</flux:button>
                 </flux:modal.trigger>
             @endif
-            <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live="search" class="max-w-xs" clearable />
+            <flux:input icon="magnifying-glass" placeholder="Rechercher" wire:model.live.debounce.500ms="search" class="max-w-xs" clearable />
 
             @if($useViewMode)
                 <flux:button.group>
