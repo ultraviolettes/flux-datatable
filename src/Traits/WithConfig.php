@@ -4,15 +4,26 @@ namespace Ultraviolettes\FluxDataTable\Traits;
 
 trait WithConfig
 {
-    public bool $usePagination = true;
+    public bool $usePagination;
 
-    public bool $useViewMode = false;
+    public bool $useViewMode;
 
     public function config(): void
     {
-        $this->setUsePagination(config('flux-datatable.flux_ui.use_pagination', true));
-        $this->setUseViewMode(config('flux-datatable.flux_ui.use_view_mode', false));
-        $this->setBulkActionLabel(__('flux-datatable::flux-datatable.bulk_action_label'));
+        // Only hydrate from config when the subclass (or rehydrated Livewire state)
+        // has not already assigned a value. A typed property without a default is
+        // "uninitialized" → isset() returns false.
+        if (! isset($this->usePagination)) {
+            $this->usePagination = config('flux-datatable.flux_ui.use_pagination', true);
+        }
+
+        if (! isset($this->useViewMode)) {
+            $this->useViewMode = config('flux-datatable.flux_ui.use_view_mode', false);
+        }
+
+        if ($this->bulkActionLabel === '') {
+            $this->setBulkActionLabel(__('flux-datatable::flux-datatable.bulk_action_label'));
+        }
     }
 
     public function setUsePagination(bool $value): void
