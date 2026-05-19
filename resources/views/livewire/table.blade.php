@@ -136,7 +136,10 @@
                         @php
                             $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
                             $sticky = $col['sticky'] ?? false;
+                            // Sur le header, on n'a pas de $row : un `class` callable n'a pas
+                            // de sens ici, on l'ignore. Une string reste appliquée.
                             $class = $col['class'] ?? null;
+                            $class = is_string($class) ? $class : null;
                         @endphp
                         <flux:table.column
                             x-data="{ sortable: {{ isset($col['sortable']) && $col['sortable'] ? 'true' : 'false' }} }"
@@ -182,7 +185,13 @@
                                 @php
                                     $colId = $col['field'] ? \Illuminate\Support\Str::slug($col['field']) : $index;
                                     $sticky = $col['sticky'] ?? false;
+                                    // `class` peut être soit une string, soit un callable
+                                    // `fn($row): ?string` pour conditionner les classes
+                                    // sur la ligne (ex : griser les inactifs).
                                     $class = $col['class'] ?? null;
+                                    if (is_callable($class)) {
+                                        $class = $class($row);
+                                    }
                                 @endphp
                                 <flux:table.cell :align="$col['align'] ?? 'center'" variant="strong" :wire:key="'row-cell-' . $rowId . '-' . $colId" :sticky="$sticky" @class([$class => $class])>
                                     @if(isset($col['render']))
