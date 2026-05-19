@@ -167,6 +167,36 @@ FluxDataTable::columns([
 ])->data(User::query());
 ```
 
+### Per-column CSS classes
+
+Each column can declare a `class` option to apply CSS classes to its cells.
+Two forms are supported:
+
+- **Static string** — applied to both the column header and every cell of that column:
+
+```php
+[
+    'label' => 'Actions',
+    'field' => null,
+    'class' => 'bg-zinc-50',
+    'render' => fn ($row) => view('rows.actions', ['row' => $row]),
+],
+```
+
+- **Closure `fn ($row): ?string`** — evaluated against each row, only applied to the cell (the header has no row context and skips the callable). Useful to highlight, mute or otherwise discriminate a row based on its data:
+
+```php
+[
+    'label' => 'Provider name',
+    'field' => 'name',
+    'render' => fn ($row) => $row->name,
+    // grey out inactive rows
+    'class' => fn ($row) => $row->is_active ? null : 'text-zinc-400 italic',
+],
+```
+
+Returning `null` from the callable emits no class for that row. Both forms can be mixed across columns in the same table.
+
 ### Customizing Per-Page Options
 
 You can customize the per-page options:
