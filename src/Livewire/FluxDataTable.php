@@ -166,29 +166,73 @@ class FluxDataTable extends Component
         return $this->builder()
             ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
             ->tap(fn ($query) => $this->applyFilters($query))
-            ->when($this->search, function ($query) {
-                collect(explode(' ', $this->search))
-                    ->filter()
-                    ->each(function ($term) use ($query) {
-                        $query->where(function ($subQuery) use ($term) {
-                            foreach ($this->searchableFields as $field) {
-
-                                if (Str::contains($field, '.')) {
-                                    // Chercher sur la relation
-                                    $relation = Str::before($field, '.');
-                                    $relationField = Str::after($field, '.');
-                                    $subQuery->orWhereHas($relation, function ($subQuery) use ($relationField, $term) {
-                                        $subQuery->where($relationField, 'ilike', "%{$term}%");
-                                    });
-                                } else {
-                                    $subQuery->orWhere($field, 'ilike', "%{$term}%");
-                                }
-
-                            }
-                        });
-                    });
-            })
+            ->tap(fn ($query) => $this->applySearch($query))
             ->paginate($this->perPage);
+    }
+
+    /**
+     * Applique la recherche plein-texte sur les colonnes `searchable`.
+     *
+     * Chaque terme (séparé par une espace) doit matcher au moins une colonne
+     * searchable (AND entre les termes, OR entre les colonnes).
+     */
+    protected function applySearch($query)
+    {
+        return $query->when($this->search, function ($query) {
+            collect(explode(' ', $this->search))
+                ->filter()
+                ->each(function ($term) use ($query) {
+                    $query->where(function ($subQuery) use ($term) {
+                        foreach ($this->searchableFields as $field) {
+                            $this->applySearchTerm($subQuery, $field, $term);
+                        }
+                    });
+                });
+        });
+    }
+
+    /**
+     * Ajoute la condition de recherche d'un terme sur un champ donné.
+     *
+     * Un champ pointé (`relation.colonne`) n'est traité comme une relation
+     * (`whereHas`) que si le préfixe est réellement une relation du modèle.
+     * Sinon il est considéré comme une colonne déjà qualifiée (`table.colonne`).
+     * Les colonnes directes sont qualifiées avec la table du modèle pour rester
+     * non ambiguës lorsque le builder contient des jointures (ex. un `leftJoin`
+     * vers une table possédant elle aussi une colonne `name`).
+     */
+    protected function applySearchTerm($query, string $field, string $term): void
+    {
+        if (Str::contains($field, '.') && $this->fieldTargetsRelation($query, Str::before($field, '.'))) {
+            $relation = Str::before($field, '.');
+            $relationField = Str::after($field, '.');
+
+            $query->orWhereHas($relation, function ($relationQuery) use ($relationField, $term) {
+                $relationQuery->where($this->qualifySearchColumn($relationQuery, $relationField), 'ilike', "%{$term}%");
+            });
+
+            return;
+        }
+
+        $query->orWhere($this->qualifySearchColumn($query, $field), 'ilike', "%{$term}%");
+    }
+
+    /**
+     * Détermine si le préfixe d'un champ pointé correspond à une relation Eloquent.
+     */
+    protected function fieldTargetsRelation($query, string $relation): bool
+    {
+        return method_exists($query, 'getModel') && $query->getModel()->isRelation($relation);
+    }
+
+    /**
+     * Qualifie une colonne avec la table du modèle quand c'est possible (builder
+     * Eloquent), pour éviter les références ambiguës en présence de jointures.
+     * Une colonne déjà qualifiée (`table.colonne`) est laissée intacte.
+     */
+    protected function qualifySearchColumn($query, string $field): string
+    {
+        return method_exists($query, 'qualifyColumn') ? $query->qualifyColumn($field) : $field;
     }
 
     public function render(): View
