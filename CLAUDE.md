@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `ultraviolettes/flux-datatable` — A standalone Tailwind + Livewire DataTable package with Flux UI styling for Laravel.
 
-**Requirements:** PHP 8.4+, Laravel 10/11/12, Livewire 3.6+/4.0, Flux UI 2.1+, Spatie Laravel Data 4.17+.
+**Requirements:** PHP 8.4+, Laravel 10/11/12/13, Livewire 3.6+/4.0, Flux UI 2.1+, Spatie Laravel Data 4.17+.
 
 ## Commands
 
@@ -19,7 +19,7 @@ composer prepare           # Discover package (testbench)
 composer test-coverage     # Tests with coverage
 ```
 
-CI runs on PHP 8.4, Laravel 12, Ubuntu + Windows. Flux UI credentials are stored as GitHub secrets.
+CI runs on PHP 8.4/8.5, Laravel 12 + 13, Ubuntu + Windows. Flux UI credentials are stored as GitHub secrets.
 
 ## Architecture
 

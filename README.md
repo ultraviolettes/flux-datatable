@@ -28,8 +28,8 @@ Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 ## 📦 Requirements
 
 - **PHP** ≥ 8.4
-- **Laravel** ≥ 10.x
-- **Livewire** ≥ 2.x
+- **Laravel** 10.x → 13.x
+- **Livewire** ≥ 3.6 (Livewire 4 supported)
 - **TailwindCSS** (via Laravel Mix or Vite)
 - **Flux UI** (for default styling)
 
