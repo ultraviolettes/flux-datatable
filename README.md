@@ -23,6 +23,7 @@ Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 - ✅ **Filter modal** with customizable filters
 - ✅ **Search input** with live updates
 - ✅ **Header widgets** whose aggregates stay in sync with the filtered table
+- ✅ **Multi-value filters** with a default selection
 
 ---
 
@@ -279,7 +280,12 @@ class UsersTable extends \Ultraviolettes\FluxDataTable\Http\Livewire\FluxDataTab
 }
 ```
 
-The filter values are automatically applied to the query when the user selects a value from the filter dropdown. The filter values are also persisted in the URL query string, so users can share filtered views.
+The filter values are automatically applied to the query when the user selects a value
+from the filter dropdown.
+
+> **Note** — unlike `search`, `sortBy`, `sortDirection` and `perPage`, filter values are
+> **not** persisted in the URL query string: `$updatesQueryString` is Livewire 2 syntax
+> and has no effect on Livewire 3+. A filtered view cannot be shared by copying the URL.
 
 You can reset all filters to their default values by clicking the "Réinitialiser" button in the filter modal.
 
@@ -288,9 +294,57 @@ You can reset all filters to their default values by clicking the "Réinitialise
 Currently, the following filter types are available:
 
 - **SelectFilter**: A dropdown filter that allows users to select a single value from a list of options.
+- **MultiSelectFilter**: The same dropdown, allowing several values at once — see below.
+- **RadioFilter**: A radio group, for a single value among a short list.
 - **DateFilter**: A date picker filter that allows users to select a date for filtering.
+- **DateRangeFilter**: A date range picker, applied with `whereBetween`.
 
 More filter types will be added in future releases.
+
+#### MultiSelectFilter
+
+`SelectFilter` and `RadioFilter` produce a single scalar, so the user can only ever
+see *one* status at a time. `MultiSelectFilter` takes several values on the same
+dimension and shows their union — a plain `whereIn($field, $values)` by default:
+
+```php
+use Ultraviolettes\FluxDataTable\Filters\MultiSelectFilter;
+
+'status' => MultiSelectFilter::make('Status', 'status')
+    ->options([
+        2 => 'Awaiting validation',
+        3 => 'In production',
+        4 => 'Shipping',
+        8 => 'Cancelled',
+    ])
+    ->defaultValue([2, 3, 4])                                    // everything but "Cancelled"
+    ->query(fn ($query, $values) => $query->whereIn('status_id', $values)),
+```
+
+A custom `query()` callback always receives an **array**, even when a single value
+is selected.
+
+`defaultValue()` is where this filter earns its keep. Pre-selecting every value but
+one hides that value by default while leaving it one click away — which is what you
+want instead of adding a second "exclude" filter alongside the first. Two controls on
+the same dimension can contradict each other (including *Cancelled* while another
+filter still excludes it yields an empty table and two perfectly sensible-looking
+pills), and no precedence rule is guessable. One multi-select is one source of truth.
+
+Two behaviours worth knowing:
+
+- **Emptying the selection applies no filter at all**, and the table falls back to
+  every row. Closing the pill does the same, since `removeFilter()` drops the whole
+  entry: the default value is only set on `mount()` and does not come back.
+- **The pill label adapts to the selection** so a near-complete one never renders as a
+  long enumeration: up to two values are listed, an all-but-a-few selection reads
+  *"all except Cancelled"*, everything else falls back to *"5 selected"*. The wording
+  lives in the package translations (`filter_all`, `filter_all_except`,
+  `filter_selected_count`) and can be overridden by publishing them.
+
+A filter with a multiple value renders its pill through `getPillLabel()`, which is
+the extension point to override in your own filters — `getKeyLabel()` only ever
+receives a single scalar key.
 
 ### Search Functionality
 
@@ -394,6 +448,14 @@ public function widgetQuery(): Builder
 
 `headerWidgets()` is free to use either: `filteredQuery()` for "exactly the table",
 `widgetQuery()` for "the table, minus what this table's widgets deliberately skip".
+
+#### Keeping the figure readable
+
+Because the widget now covers exactly the displayed rows, rows the user does not care
+about — cancelled orders, say — land in the total and make it hard to read at a glance.
+The answer is a [`MultiSelectFilter`](#multiselectfilter) whose `defaultValue()` pre-selects
+everything but those rows: the total stays faithful to the table *and* immediately
+readable, without a second filter that could contradict the first.
 
 ## 🛠️ Testing
 

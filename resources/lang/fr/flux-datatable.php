@@ -10,4 +10,8 @@ return [
     'reset' => 'Réinitialiser',
     'actions' => 'Actions',
     'no_record_found' => 'Aucun élément trouvé',
+    'choose' => 'Choisir...',
+    'filter_all' => 'tous',
+    'filter_all_except' => 'tous sauf :values',
+    'filter_selected_count' => ':count sélectionnés',
 ];

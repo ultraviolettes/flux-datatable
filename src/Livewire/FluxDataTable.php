@@ -86,7 +86,10 @@ class FluxDataTable extends Component
 
         // Filter default value
         foreach ($this->filters() as $filter) {
-            if ($filter->defaultValue) {
+            // `filled()` plutôt qu'un test de véracité : une valeur par défaut
+            // vide (`''`, `[]`) est délibérément ignorée, mais `'0'` — une clé
+            // d'option parfaitement légitime — doit être posée.
+            if (filled($filter->defaultValue)) {
                 $this->filters[$filter->getField()] = $filter->defaultValue;
             }
         }

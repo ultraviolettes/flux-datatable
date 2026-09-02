@@ -15,7 +15,7 @@ abstract class Filter
 
     protected array $options = [];
 
-    public ?string $defaultValue = null;
+    public string|array|null $defaultValue = null;
 
     public bool $showPills = true;
 
@@ -72,7 +72,24 @@ abstract class Filter
         return Str::ucfirst($key);
     }
 
-    public function defaultValue(string $defaultValue): self
+    /**
+     * Libellé affiché dans la pill du filtre actif.
+     *
+     * Point d'extension distinct de `getKeyLabel()`, qui ne reçoit qu'une clé
+     * scalaire : un filtre à valeur multiple le surcharge sans obliger tous les
+     * autres filtres à élargir leur signature.
+     */
+    public function getPillLabel(mixed $value): string
+    {
+        return $this->getKeyLabel($value);
+    }
+
+    /**
+     * Valeur pré-sélectionnée, posée sur le composant au `mount()`.
+     *
+     * Accepte un tableau pour les filtres à valeur multiple (MultiSelectFilter).
+     */
+    public function defaultValue(string|array $defaultValue): self
     {
         $this->defaultValue = $defaultValue;
 
