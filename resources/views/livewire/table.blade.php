@@ -69,13 +69,13 @@
             @foreach($this->filters as $filterField => $filterValue)
                 @php
                     $filter = $tableFilters[$filterField];
-                    $label = $filter->getKeyLabel($filterValue);
-                    $name = $filter->getName();
-                    $showPills = $filter->showPills;
                 @endphp
 
-                @if($showPills)
-                    <flux:badge>{{ $name }} : {{ $label }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
+                {{-- `filled()` écarte les valeurs vides ('', null, []) : une sélection
+                     entièrement vidée n'applique aucun filtre, elle ne doit donc pas
+                     afficher de pill (et `getPillLabel()` n'a rien à en dire). --}}
+                @if($filter->showPills && filled($filterValue))
+                    <flux:badge>{{ $filter->getName() }} : {{ $filter->getPillLabel($filterValue) }} <flux:badge.close wire:click="removeFilter('{{ $filterField }}')" /></flux:badge>
                 @endif
             @endforeach
         </div>
