@@ -22,6 +22,7 @@ Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 - ✅ **View mode switching** between table and card views
 - ✅ **Filter modal** with customizable filters
 - ✅ **Search input** with live updates
+- ✅ **Header widgets** whose aggregates stay in sync with the filtered table
 
 ---
 
@@ -333,6 +334,66 @@ public function updatingSearch()
     $this->resetPage();
 }
 ```
+
+### Header Widgets
+
+`headerWidgets()` renders stat cards above the table. An aggregate shown there must
+describe **the rows the user is actually looking at** — so build it from
+`filteredQuery()`, never from `builder()`.
+
+`filteredQuery()` is the table query after filters and search, without sorting and
+without pagination. It is the single source of truth for the displayed rows:
+
+```php
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
+use Ultraviolettes\FluxDataTable\DataObject\WidgetDataObject;
+
+#[Computed]
+public function headerWidgets(): Collection
+{
+    return collect([
+        new WidgetDataObject(
+            label: 'Total',
+            value: (string) $this->filteredQuery()->sum('price_ht'),
+        )->isCurrency(),
+    ]);
+}
+```
+
+Do **not** rebuild the query by hand:
+
+```php
+// ✗ Applies filters but silently forgets the search term: the widget will
+//   contradict the table as soon as the user types something.
+$this->builder()->tap(fn ($query) => $this->applyFilters($query))->sum('price_ht');
+```
+
+A few properties worth knowing:
+
+- **No pagination.** The aggregate covers the whole filtered result, not the current page.
+- **No sorting.** Sorting is a display concern and stays in `records()`.
+- **A new instance on every call.** An Eloquent builder mutates in place, so
+  `filteredQuery()` is deliberately not memoized: two widgets can each add their own
+  clauses without polluting one another.
+- **Public.** Your own tests can assert that a widget and the table cover the same set.
+
+#### Widgets on a subset of the rows
+
+If your widgets legitimately cover a subset of the displayed rows (excluding parent
+orders that would be double-counted, for instance), override `widgetQuery()` rather
+than diverging widget by widget. The difference is then declared once, explicitly —
+and the widget label should tell the user about it:
+
+```php
+public function widgetQuery(): Builder
+{
+    return $this->filteredQuery()->whereNull('subscription_parent_id');
+}
+```
+
+`headerWidgets()` is free to use either: `filteredQuery()` for "exactly the table",
+`widgetQuery()` for "the table, minus what this table's widgets deliberately skip".
 
 ## 🛠️ Testing
 

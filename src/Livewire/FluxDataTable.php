@@ -159,14 +159,47 @@ class FluxDataTable extends Component
         return $this->records()->pluck('id')->toArray();
     }
 
+    /**
+     * La requête du tableau après filtres et recherche, sans tri ni pagination.
+     *
+     * C'est la source de vérité des lignes affichées : tout agrégat d'en-tête
+     * (widget) doit en dériver pour rester cohérent avec le tableau, au lieu de
+     * reconstruire à la main une requête qui finit toujours par diverger.
+     *
+     * Volontairement SANS `#[Computed]` : un builder Eloquent se modifie sur
+     * place, une instance mémoïsée accumulerait donc le `orderBy` de `records()`
+     * puis les `where` de chaque widget. Chaque appel repart de `builder()` et
+     * renvoie une nouvelle instance.
+     */
+    public function filteredQuery(): Builder
+    {
+        // Le retour de `applyFilters()` est utilisé, pas `tap`é : le
+        // `queryCallback` d'un filtre est fourni par l'application et rien ne
+        // garantit qu'il renvoie l'instance reçue.
+        $query = $this->applyFilters($this->builder());
+
+        $this->applySearch($query);
+
+        return $query;
+    }
+
+    /**
+     * Requête sur laquelle portent les widgets d'en-tête. Par défaut, exactement
+     * les lignes du tableau. À surcharger si les widgets doivent porter sur un
+     * sous-ensemble — auquel cas leur libellé doit le dire à l'utilisateur.
+     */
+    public function widgetQuery(): Builder
+    {
+        return $this->filteredQuery();
+    }
+
     #[Computed]
     public function records(): LengthAwarePaginator
     {
-        // Handle different types of data sources
-        return $this->builder()
+        // Le tri reste ici : c'est une préoccupation d'affichage, sans objet
+        // pour un agrégat.
+        return $this->filteredQuery()
             ->tap(fn ($query) => $this->sortBy ? $query->orderBy($this->sortBy, $this->sortDirection) : $query)
-            ->tap(fn ($query) => $this->applyFilters($query))
-            ->tap(fn ($query) => $this->applySearch($query))
             ->paginate($this->perPage);
     }
 

@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            // Colonne numérique pour les tests d'agrégat (widgets d'en-tête).
+            $table->unsignedInteger('price')->default(0);
             $table->timestamps();
         });
     }
