@@ -2,6 +2,7 @@
 
 use Livewire\Livewire;
 use Ultraviolettes\FluxDataTable\Filters\MultiSelectFilter;
+use Ultraviolettes\FluxDataTable\Filters\SelectFilter;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\Item;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\MultiSelectTable;
 
@@ -119,7 +120,7 @@ it('keeps a key as its own label when no option matches', function () {
 });
 
 it('leaves single-value filters untouched by getPillLabel', function () {
-    $filter = \Ultraviolettes\FluxDataTable\Filters\SelectFilter::make('Category', 'category_id')
+    $filter = SelectFilter::make('Category', 'category_id')
         ->options([1 => 'One', 2 => 'Two']);
 
     expect($filter->getPillLabel(2))->toBe('Two');
