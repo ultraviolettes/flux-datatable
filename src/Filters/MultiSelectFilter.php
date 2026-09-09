@@ -104,7 +104,7 @@ final class MultiSelectFilter extends Filter
      */
     public function render(): View
     {
-        return view('flux-datatable::filters.multi-select', [ // @phpstan-ignore-line
+        return view('flux-datatable::filters.multi-select', [
             'name' => $this->name,
             'field' => $this->field,
             'options' => $this->options,

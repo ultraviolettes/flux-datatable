@@ -10,3 +10,13 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
+    ignoreErrors:
+        # Les vues du package sont namespacées (`flux-datatable::…`) et le
+        # namespace n'est enregistré qu'au runtime, par le service provider.
+        # Larastan y arrive quand une application l'a déjà découvert (dev local)
+        # et échoue sur une CI qui analyse le package nu — d'où une erreur
+        # présente ici et absente là. `reportUnmatched: false` couvre les deux
+        # cas sans laisser traîner des `@phpstan-ignore-line` morts.
+        -
+            message: '#^Parameter \#1 \$view of function view expects view-string\|null, string given\.$#'
+            reportUnmatched: false

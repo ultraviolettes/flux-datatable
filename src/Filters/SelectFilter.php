@@ -38,7 +38,7 @@ final class SelectFilter extends Filter
      */
     public function render(): View
     {
-        return view('flux-datatable::filters.select', [ // @phpstan-ignore-line
+        return view('flux-datatable::filters.select', [
             'name' => $this->name,
             'field' => $this->field,
             'options' => $this->options,

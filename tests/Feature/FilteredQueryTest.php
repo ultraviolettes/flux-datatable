@@ -98,9 +98,12 @@ it('still sorts, filters and paginates records()', function () {
 });
 
 it('renders a header widget consistent with the filtered table', function () {
+    // On assert sur `>valeur<` et non sur la valeur nue : les composants Flux
+    // sont réellement rendus dans les tests et leurs classes Tailwind
+    // (`text-zinc-700`, `border-zinc-300`…) contiennent les mêmes chiffres.
     Livewire::test(WidgetTable::class)
-        ->assertSee('700')
+        ->assertSeeHtml('>700<')
         ->set('filters', ['category_id' => 1])
-        ->assertSee('300')
-        ->assertDontSee('700');
+        ->assertSeeHtml('>300<')
+        ->assertDontSeeHtml('>700<');
 });

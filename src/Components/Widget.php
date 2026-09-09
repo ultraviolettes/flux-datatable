@@ -8,6 +8,6 @@ class Widget
 {
     public function render(): View
     {
-        return view('flux-datatable::components.widget'); // @phpstan-ignore-line
+        return view('flux-datatable::components.widget');
     }
 }
