@@ -171,8 +171,9 @@
                     @foreach ($this->records as $row)
                         @php
                             $rowId = $row->id ?? $loop->index;
+                            $rowAttributes = new \Illuminate\View\ComponentAttributeBag($this->rowAttributes($row));
                         @endphp
-                        <flux:table.row :wire:key="'row-key-' . $rowId">
+                        <flux:table.row :wire:key="'row-key-' . $rowId" {{ $rowAttributes }}>
                             @if(count($bulkActions) > 0)
                                 <flux:table.cell>
                                     <flux:checkbox
@@ -244,8 +245,10 @@
                 @foreach ($this->records as $row)
                     @php
                         $rowId = $row->id ?? $loop->index;
+                        $rowAttributes = (new \Illuminate\View\ComponentAttributeBag($this->rowAttributes($row)))
+                            ->merge(['class' => 'bg-white rounded-lg shadow overflow-hidden']);
                     @endphp
-                    <div class="bg-white rounded-lg shadow overflow-hidden" wire:key="card-row-{{ $rowId }}">
+                    <div {{ $rowAttributes }} wire:key="card-row-{{ $rowId }}">
                         <div class="p-4">
                             @foreach ($columns as $index => $col)
                                 @php

@@ -199,6 +199,33 @@ Two forms are supported:
 
 Returning `null` from the callable emits no class for that row. Both forms can be mixed across columns in the same table.
 
+### Row attributes (clickable rows)
+
+Override `rowAttributes(Model $row): array` to put arbitrary HTML attributes on
+the row itself — `<tr>` in table mode, the card wrapper in card mode. This makes
+a whole row clickable, like a file explorer opening a folder, instead of
+restricting the interaction to a single cell rendered by a column:
+
+```php
+use Illuminate\Database\Eloquent\Model;
+
+public function rowAttributes(Model $row): array
+{
+    if ($row->type !== 'folder') {
+        return [];
+    }
+
+    return [
+        'wire:click' => "open({$row->id})",
+        'class' => 'cursor-pointer hover:bg-zinc-50',
+        'data-folder-id' => (string) $row->id,
+    ];
+}
+```
+
+The default returns `[]`, so existing tables are unchanged. Classes returned
+here are merged with the ones the package already applies, not substituted.
+
 ### Customizing Per-Page Options
 
 You can customize the per-page options:
