@@ -15,5 +15,5 @@ All notable changes to `:package_name` will be documented in this file.
 
 ### Changed
 
-- Dropped seven obsolete `@phpstan-ignore-line` comments on `return view(…)` calls. Current larastan narrows `view('name')` to `View`, so the ignores matched nothing and were themselves reported as `ignore.unmatchedLine` errors. `composer analyse` is clean without them.
+- Replaced seven `@phpstan-ignore-line` comments on `view(…)` calls with a single scoped `ignoreErrors` entry carrying `reportUnmatched: false`. Larastan only resolves the package's namespaced views (`flux-datatable::…`) when an application has already discovered the provider, so the error appeared on CI and not locally — and the inline ignores were reported as dead (`ignore.unmatchedLine`) wherever it did not. `composer analyse` is now clean in both environments.
 - Narrowed the supported versions to the single target the package is actually used and tested on: PHP 8.5, Laravel 13, Livewire 4, Flux UI 2.16+. Dev dependencies were narrowed the same way.
