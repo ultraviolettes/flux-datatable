@@ -42,7 +42,7 @@ final class RadioFilter extends Filter
 
     public function render()
     {
-        return view('flux-datatable::filters.radio', [ // @phpstan-ignore-line
+        return view('flux-datatable::filters.radio', [
             'name' => $this->name,
             'field' => $this->field,
             'options' => $this->options,

@@ -12,7 +12,7 @@ final class DateFilter extends Filter
      */
     public function render(): View
     {
-        return view('flux-datatable::filters.date', [  // @phpstan-ignore-line
+        return view('flux-datatable::filters.date', [
             'name' => $this->name,
             'field' => $this->field,
         ]);

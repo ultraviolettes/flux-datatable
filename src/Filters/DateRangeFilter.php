@@ -26,7 +26,7 @@ final class DateRangeFilter extends Filter
      */
     public function render(): View
     {
-        return view('flux-datatable::filters.date-range', [ // @phpstan-ignore-line
+        return view('flux-datatable::filters.date-range', [
             'name' => $this->name,
             'field' => $this->field,
             'config' => $this->config,
