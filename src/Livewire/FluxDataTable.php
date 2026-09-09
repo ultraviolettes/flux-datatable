@@ -4,6 +4,7 @@ namespace Ultraviolettes\FluxDataTable\Livewire;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -194,6 +195,22 @@ class FluxDataTable extends Component
     public function widgetQuery(): Builder
     {
         return $this->filteredQuery();
+    }
+
+    /**
+     * Attributs HTML posés sur la ligne (`<tr>` en mode table, la carte en mode
+     * card). Permet de rendre une ligne entière cliquable — `wire:click`,
+     * `x-on:dblclick`, `href` via un wrapper, `class`, `data-*`… — au lieu de
+     * limiter l'interaction à une cellule via le `render` d'une colonne.
+     *
+     * Vide par défaut : aucun tableau existant ne change. Les classes
+     * renvoyées sont fusionnées avec celles du package, pas substituées.
+     *
+     * @return array<string, string>
+     */
+    public function rowAttributes(Model $row): array
+    {
+        return [];
     }
 
     #[Computed]
