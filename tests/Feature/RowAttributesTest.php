@@ -22,7 +22,24 @@ it('renders the attributes on each row, resolved per row', function () {
 
     expect(substr_count($html, 'data-row-id="1"'))->toBe(1)
         ->and(substr_count($html, 'data-row-id="2"'))->toBe(1)
-        ->and(substr_count($html, 'cursor-pointer'))->toBeGreaterThanOrEqual(2);
+        ->and(substr_count($html, 'class="cursor-pointer"'))->toBe(2);
+});
+
+it('puts the attributes on the <tr> itself, not on a child', function () {
+    // Le hook n'a d'intérêt que si les attributs atterrissent sur la ligne :
+    // c'est ce qui rend la ligne entière cliquable.
+    $html = Livewire::test(RowAttributesTable::class)->html();
+
+    preg_match_all('/<tr\b[^>]*>/', $html, $matches);
+
+    $clickableRows = array_filter(
+        $matches[0],
+        fn (string $tr) => str_contains($tr, 'wire:click="open(')
+            && str_contains($tr, 'cursor-pointer')
+            && str_contains($tr, 'data-row-id=')
+    );
+
+    expect($clickableRows)->toHaveCount(2);
 });
 
 it('adds no attribute when rowAttributes() is not overridden', function () {

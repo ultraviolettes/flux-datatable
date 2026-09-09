@@ -2,8 +2,11 @@
 
 namespace Ultraviolettes\FluxDataTable\Tests;
 
+use Flux\FluxServiceProvider;
+use FluxPro\FluxProServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\File;
+use Livewire\Blaze\BlazeServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Ultraviolettes\FluxDataTable\FluxDataTableServiceProvider;
@@ -19,11 +22,22 @@ class TestCase extends Orchestra
         );
     }
 
+    /**
+     * Flux, Flux Pro et blaze sont enregistrés pour que les balises
+     * `<flux:…>` des vues du package soient réellement compilées et rendues
+     * pendant les tests. Sans eux, elles ressortent en texte brut : le suite
+     * ne voyait donc passer aucune erreur de compilation Blade (cf. #42, où
+     * `{{ $bag }}` dans une balise Flux cassait toutes les tables des
+     * applications sans faire tomber un seul test ici).
+     */
     protected function getPackageProviders($app): array
     {
         return [
             FluxDataTableServiceProvider::class,
             LivewireServiceProvider::class,
+            BlazeServiceProvider::class,
+            FluxServiceProvider::class,
+            FluxProServiceProvider::class,
         ];
     }
 

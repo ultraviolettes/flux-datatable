@@ -173,7 +173,11 @@
                             $rowId = $row->id ?? $loop->index;
                             $rowAttributes = new \Illuminate\View\ComponentAttributeBag($this->rowAttributes($row));
                         @endphp
-                        <flux:table.row :wire:key="'row-key-' . $rowId" {{ $rowAttributes }}>
+                        {{-- `:attributes` et non `{{ $rowAttributes }}` : le spread d'un bag dans une
+                            balise de composant Flux est mal parsé par le compilateur blaze (attributs
+                            perdus, voire PHP déséquilibré et `syntax error, unexpected token "endif"`
+                            à la compilation). Voir #42. --}}
+                        <flux:table.row :wire:key="'row-key-' . $rowId" :attributes="$rowAttributes">
                             @if(count($bulkActions) > 0)
                                 <flux:table.cell>
                                     <flux:checkbox
