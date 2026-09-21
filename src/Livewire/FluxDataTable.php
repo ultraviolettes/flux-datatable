@@ -20,6 +20,9 @@ use Ultraviolettes\FluxDataTable\BulkAction;
 use Ultraviolettes\FluxDataTable\DataObject\WidgetDataObject;
 use Ultraviolettes\FluxDataTable\Traits\WithConfig;
 
+/**
+ * @property-read LengthAwarePaginator $records
+ */
 class FluxDataTable extends Component
 {
     use WithConfig, WithPagination;
@@ -164,6 +167,28 @@ class FluxDataTable extends Component
     }
 
     /**
+     * Ne garde dans la sélection que les lignes affichées.
+     *
+     * « Tout sélectionner » porte sur la page courante. Sans ce filtre, une
+     * sélection survivrait à un changement de page, de filtre, de recherche ou
+     * de tri : le bouton d'actions groupées resterait actif et l'action
+     * s'appliquerait à des lignes que l'utilisateur ne voit plus.
+     */
+    protected function keepSelectionOnDisplayedRows(): void
+    {
+        if ($this->selected === []) {
+            return;
+        }
+
+        $displayedIds = array_map('strval', $this->records->pluck('id')->all());
+
+        $this->selected = array_values(array_filter(
+            $this->selected,
+            fn ($id) => in_array((string) $id, $displayedIds, true)
+        ));
+    }
+
+    /**
      * La requête du tableau après filtres et recherche, sans tri ni pagination.
      *
      * C'est la source de vérité des lignes affichées : tout agrégat d'en-tête
@@ -290,6 +315,7 @@ class FluxDataTable extends Component
 
     public function render(): View
     {
+        $this->keepSelectionOnDisplayedRows();
 
         return view('flux-datatable::livewire.table', [
             'columns' => $this->columns(),

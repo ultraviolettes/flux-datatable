@@ -124,7 +124,11 @@
 
     <!-- Table View -->
     <div x-show="viewMode === 'table'">
-        <flux:checkbox.group>
+        {{-- La sélection passe par le `wire:model` du groupe, pas par un `wire:click` par
+            ligne : `flux:checkbox.all` coche les cases par programme, sans clic, et seul le
+            groupe voit ce changement. Sans lui, « tout sélectionner » cochait l'écran mais
+            laissait `$selected` vide (#44). --}}
+        <flux:checkbox.group wire:model.live="selected">
             <flux:table :paginate="$usePagination ? $this->records : null">
                 <flux:table.columns>
                     @if(count($bulkActions) > 0)
@@ -180,10 +184,7 @@
                         <flux:table.row :wire:key="'row-key-' . $rowId" :attributes="$rowAttributes">
                             @if(count($bulkActions) > 0)
                                 <flux:table.cell>
-                                    <flux:checkbox
-                                        :value="in_array($row->id, $selected)"
-                                        wire:click="toggleSelect('{{ $row->id }}')"
-                                    />
+                                    <flux:checkbox :value="$row->id" />
                                 </flux:table.cell>
                             @endif
                             @foreach ($columns as $index => $col)
