@@ -20,10 +20,6 @@ trait WithConfig
         if (! isset($this->useViewMode)) {
             $this->useViewMode = config('flux-datatable.flux_ui.use_view_mode', false);
         }
-
-        if ($this->bulkActionLabel === '') {
-            $this->setBulkActionLabel(__('flux-datatable::flux-datatable.bulk_action_label'));
-        }
     }
 
     public function setUsePagination(bool $value): void

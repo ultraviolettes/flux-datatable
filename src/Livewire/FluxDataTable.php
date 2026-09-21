@@ -47,8 +47,6 @@ class FluxDataTable extends Component
 
     public array $selected = [];
 
-    public string $bulkActionLabel = '';
-
     public bool $selectAll = false;
 
     public string $viewMode = 'table';
@@ -349,21 +347,14 @@ class FluxDataTable extends Component
         return collect();
     }
 
-    public function bulkActionLabel(string $bulkActionLabel): self
-    {
-        $this->bulkActionLabel = $bulkActionLabel;
-
-        return $this;
-    }
-
-    public function setBulkActionLabel(string $bulkActionLabel): void
-    {
-        $this->bulkActionLabel = $bulkActionLabel;
-    }
-
     public function executeBulkAction(string $actionName): void
     {
-        if ($action = $this->bulkActions()->firstWhere('slug', $actionName)) {
+        $action = $this->bulkActions()->firstWhere('slug', $actionName);
+
+        // Le bouton est grisé dans ce cas, mais un appel Livewire peut toujours
+        // arriver (autre onglet, sélection changée entre-temps) : la règle
+        // `disabledWhen` doit tenir côté serveur, pas seulement à l'écran.
+        if ($action && $action->isAvailableFor($this->selected)) {
             $action->apply($this->selected);
         }
     }

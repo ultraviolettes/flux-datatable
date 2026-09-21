@@ -33,16 +33,6 @@ it('préserve la valeur de useViewMode définie dans la sous-classe même si la 
         ->assertSet('useViewMode', true);
 });
 
-it('préserve bulkActionLabel défini dans la sous-classe', function () {
-    Livewire::test(OverriddenConfigTable::class)
-        ->assertSet('bulkActionLabel', 'Subclass label');
-});
-
-it('remplit bulkActionLabel depuis les traductions quand la sous-classe ne le définit pas', function () {
-    Livewire::test(TestTable::class)
-        ->assertSet('bulkActionLabel', __('flux-datatable::flux-datatable.bulk_action_label'));
-});
-
 it('préserve la valeur de usePagination après une requête Livewire (rehydration)', function () {
     Config::set('flux-datatable.flux_ui.use_pagination', true);
 

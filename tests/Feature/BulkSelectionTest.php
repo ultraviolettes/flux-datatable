@@ -4,6 +4,29 @@ use Livewire\Livewire;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\BulkActionTable;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\Item;
 
+/**
+ * La balise ouvrante du bouton d'action groupée portant ce libellé.
+ */
+function bulkButton(string $html, string $label): string
+{
+    preg_match_all('/<button\b[^>]*>(?:(?!<\/button>).)*<\/button>/s', $html, $matches);
+
+    foreach ($matches[0] as $button) {
+        if (preg_match('/>\s*'.preg_quote($label, '/').'\s*</', $button)) {
+            preg_match('/^<button\b[^>]*>/', $button, $opening);
+
+            return $opening[0];
+        }
+    }
+
+    return '';
+}
+
+function isDisabled(string $openingTag): bool
+{
+    return (bool) preg_match('/\sdisabled[\s=>]/', $openingTag);
+}
+
 beforeEach(function () {
     Item::query()->delete();
     BulkActionTable::$applied = [];
@@ -32,25 +55,6 @@ it('gives each row checkbox its record id as value', function () {
     }
 });
 
-it('enables the bulk action button once rows are selected', function () {
-    $bulkButton = fn (string $html) => preg_match('/<ui-dropdown\b[^>]*>\s*(<button\b[^>]*>)/', $html, $m) ? $m[1] : '';
-
-    $component = Livewire::test(BulkActionTable::class);
-
-    expect($bulkButton($component->html()))->toMatch('/\sdisabled[\s=>]/');
-
-    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
-
-    $component->set('selected', $ids);
-
-    expect($bulkButton($component->html()))->not->toBe('')
-        ->and($bulkButton($component->html()))->not->toMatch('/\sdisabled[\s=>]/');
-
-    $component->call('executeBulkAction', 'archive');
-
-    expect(BulkActionTable::$applied)->toEqualCanonicalizing($ids);
-});
-
 it('drops selected rows that are no longer displayed', function () {
     $alpha = Item::query()->where('name', 'Alpha')->first();
     $bravo = (string) Item::query()->where('name', 'Bravo')->value('id');
@@ -76,4 +80,90 @@ it('limits the selection to the current page', function () {
         ->assertSet('selected', $pageOne)
         ->call('gotoPage', 2)
         ->assertSet('selected', []);
+});
+
+it('renders one always-visible button per bulk action, without a dropdown', function () {
+    $html = Livewire::test(BulkActionTable::class)->html();
+
+    expect(bulkButton($html, 'Archive'))->not->toBe('')
+        ->and(bulkButton($html, 'Move'))->not->toBe('')
+        ->and(bulkButton($html, 'Delete'))->not->toBe('')
+        ->and($html)->not->toContain('<ui-dropdown');
+});
+
+it('disables every button, without tooltip, when nothing is selected', function () {
+    $html = Livewire::test(BulkActionTable::class)->html();
+
+    foreach (['Archive', 'Move', 'Delete'] as $label) {
+        expect(isDisabled(bulkButton($html, $label)))->toBeTrue();
+    }
+
+    expect($html)->not->toContain('Charlie cannot be moved.')
+        ->and($html)->not->toContain('<ui-tooltip');
+});
+
+it('enables the buttons once rows are selected and runs the action', function () {
+    $ids = Item::query()->whereIn('name', ['Alpha', 'Bravo'])->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    $component = Livewire::test(BulkActionTable::class)->set('selected', $ids);
+
+    foreach (['Archive', 'Move', 'Delete'] as $label) {
+        expect(isDisabled(bulkButton($component->html(), $label)))->toBeFalse();
+    }
+
+    $component->call('executeBulkAction', 'move');
+
+    expect(BulkActionTable::$applied)->toEqualCanonicalizing($ids);
+});
+
+it('disables an action through disabledWhen and shows its reason', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    $html = Livewire::test(BulkActionTable::class)->set('selected', $ids)->html();
+
+    expect(isDisabled(bulkButton($html, 'Move')))->toBeTrue()
+        ->and(isDisabled(bulkButton($html, 'Archive')))->toBeFalse()
+        ->and($html)->toMatch('/<ui-tooltip\b.*Charlie cannot be moved\./s');
+});
+
+it('refuses to run an action disabled by disabledWhen, even when called directly', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    Livewire::test(BulkActionTable::class)
+        ->set('selected', $ids)
+        ->call('executeBulkAction', 'move');
+
+    expect(BulkActionTable::$applied)->toBe([]);
+});
+
+it('does not run an action on an empty selection', function () {
+    Livewire::test(BulkActionTable::class)->call('executeBulkAction', 'archive');
+
+    expect(BulkActionTable::$applied)->toBe([]);
+});
+
+it('applies the variant to the button', function () {
+    $html = Livewire::test(BulkActionTable::class)->html();
+
+    expect(bulkButton($html, 'Delete'))->toContain('data-flux-button')
+        ->and(bulkButton($html, 'Delete'))->toContain('bg-red-500')
+        ->and(bulkButton($html, 'Archive'))->not->toContain('bg-red-500');
+});
+
+it('shows the custom confirmation text in the confirmation modal', function () {
+    Livewire::test(BulkActionTable::class)
+        ->assertSeeHtml('confirm-modal-delete')
+        ->assertSee('Deleted items stay visible in existing quotes.')
+        ->assertDontSeeHtml('confirm-modal-archive');
+});
+
+it('summarises the selection next to the buttons', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    Livewire::test(BulkActionTable::class)
+        ->assertSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 0))
+        ->set('selected', array_slice($ids, 0, 1))
+        ->assertSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 1))
+        ->set('selected', $ids)
+        ->assertSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 3, ['count' => 3]));
 });

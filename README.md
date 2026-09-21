@@ -24,6 +24,7 @@ Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 - ✅ **Search input** with live updates
 - ✅ **Header widgets** whose aggregates stay in sync with the filtered table
 - ✅ **Multi-value filters** with a default selection
+- ✅ **Bulk actions** as always-visible buttons, conditionally disabled with a reason
 
 ---
 
@@ -415,6 +416,48 @@ public function updatingSearch()
     $this->resetPage();
 }
 ```
+
+### Bulk Actions
+
+Override `bulkActions()` to add a checkbox column and a bar of buttons above the
+table. Each action is its own button, always visible, next to a selection summary
+(*"3 items selected"*). The header checkbox selects every row **of the current page**;
+the selection never outlives a page, filter, search or sort change.
+
+```php
+use Illuminate\Support\Collection;
+use Ultraviolettes\FluxDataTable\BulkAction;
+
+public function bulkActions(): Collection
+{
+    return collect([
+        BulkAction::make('Move to a folder')
+            ->icon('folder-arrow-down')
+            ->disabledWhen(fn (array $selected) => Folder::containsAny($selected)
+                ? 'A folder cannot be moved into another folder. Uncheck it to continue.'
+                : null)
+            ->action(fn (array $selected) => /* ... */),
+
+        BulkAction::make('Delete')
+            ->variant('danger')
+            ->requiresConfirmation()
+            ->confirmationText('Deleted items stay visible in the quotes that use them.')
+            ->action(fn (array $selected) => Item::whereIn('id', $selected)->delete()),
+    ]);
+}
+```
+
+| Method | Effect |
+| --- | --- |
+| `icon(string)` | Heroicon shown on the button. |
+| `variant(string)` | Flux button variant: `outline` (default), `danger` for destructive actions, `primary`, `filled`, `ghost`, `subtle`. |
+| `disabledWhen(Closure)` | Receives the selected ids and returns **the reason** the action is unavailable, or `null` when it is allowed. The reason is shown as a tooltip on the greyed-out button, and the action is refused server-side too. |
+| `requiresConfirmation()` | Asks for confirmation in a modal before running. |
+| `confirmationText(string)` | Text of that modal, instead of the generic translated one. |
+| `confirmationIcon(string)` | Icon of that modal. |
+
+With nothing selected, every button is disabled, without a tooltip. Selected ids
+arrive as strings.
 
 ### Header Widgets
 

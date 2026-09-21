@@ -83,42 +83,62 @@
 
 
     @if($bulkActions->isNotEmpty())
-        <div class="mb-4">
-            <flux:dropdown>
-                <flux:button size="sm" :disabled="count($selected) === 0">
-                    {{ $bulkActionLabel }}
-                </flux:button>
+        {{-- Une action = un bouton toujours visible : on voit ce qu'on peut faire d'une
+            sélection sans ouvrir de menu, et chaque action peut être grisée pour sa
+            propre raison (`disabledWhen`). --}}
+        <div class="mb-4 flex flex-wrap items-center gap-3" data-flux-datatable-bulk-actions>
+            <flux:text data-flux-datatable-selection-summary>
+                {{ trans_choice('flux-datatable::flux-datatable.selection_summary', count($selected), ['count' => count($selected)]) }}
+            </flux:text>
 
-                <flux:menu >
-                    @foreach($bulkActions as $action)
-                        @if($action->requiresConfirmation)
-                            <flux:modal.trigger name="confirm-modal-{{$action->slug}}">
-                                <flux:menu.item :icon="$action->icon" keep-open>{{ $action->label }}</flux:menu.item>
-                            </flux:modal.trigger>
-                            <flux:modal name="confirm-modal-{{$action->slug}}" class="space-y-6 text-center">
+            @foreach($bulkActions as $action)
+                @php
+                    $disabledReason = $action->disabledReasonFor($selected);
+                    $available = $action->isAvailableFor($selected);
+                @endphp
 
-                                <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
+                @if(! $available)
+                    @if($disabledReason !== null)
+                        {{-- Un bouton désactivé ne reçoit aucun événement souris : l'infobulle
+                            doit s'accrocher à un élément qui l'enveloppe. --}}
+                        <flux:tooltip :content="$disabledReason">
+                            <div>
+                                <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
+                            </div>
+                        </flux:tooltip>
+                    @else
+                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
+                    @endif
+                @elseif($action->requiresConfirmation)
+                    {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
+                        bouton désactivé (`pointer-events-none`), le clic tomberait sur le
+                        déclencheur et ouvrirait quand même la modale. --}}
+                    <flux:modal.trigger name="confirm-modal-{{ $action->slug }}">
+                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon">{{ $action->label }}</flux:button>
+                    </flux:modal.trigger>
+                @else
+                    <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->slug }}')">{{ $action->label }}</flux:button>
+                @endif
 
-                                    <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
-                                </div>
+                @if($action->requiresConfirmation)
+                    <flux:modal name="confirm-modal-{{ $action->slug }}" class="space-y-6 text-center">
+                        <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
+                            <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
+                        </div>
 
-                                <flux:text>{{ __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
+                        <flux:text>{{ $action->confirmationText ?? __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
 
-                                <div>
-                                    <flux:modal.close>
-                                        <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
-                                    </flux:modal.close>
-                                    <flux:button  wire:click="executeBulkAction('{{ $action->slug }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
-                                </div>
-                            </flux:modal>
-                        @else
-                            <flux:menu.item :icon="$action->icon" wire:click="executeBulkAction('{{ $action->slug }}')">
-                                {{ $action->label }}
-                            </flux:menu.item>
-                        @endif
-                    @endforeach
-                </flux:menu>
-            </flux:dropdown>
+                        <div>
+                            <flux:modal.close>
+                                <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
+                            </flux:modal.close>
+                            <flux:modal.close>
+                                <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->slug }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
+                            </flux:modal.close>
+                        </div>
+                    </flux:modal>
+                @endif
+            @endforeach
         </div>
     @endif
 
