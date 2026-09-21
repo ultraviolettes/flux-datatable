@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'bulk_action_label' => 'Action en masse',
+    'selection_summary' => '{0} Aucun élément sélectionné|{1} 1 élément sélectionné|[2,*] :count éléments sélectionnés',
     'bulk_action_text' => 'Êtes-vous sûr de vouloir faire cela ?',
     'cancel' => 'Annuler',
     'confirm' => 'Confirmer',
