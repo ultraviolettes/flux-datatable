@@ -318,7 +318,7 @@ class FluxDataTable extends Component
         return view('flux-datatable::livewire.table', [
             'columns' => $this->columns(),
             'tableFilters' => $this->filters(),
-            'bulkActions' => $this->bulkActions(),
+            'bulkActions' => $this->resolvedBulkActions(),
         ]);
     }
 
@@ -347,14 +347,45 @@ class FluxDataTable extends Component
         return collect();
     }
 
-    public function executeBulkAction(string $actionName): void
+    /**
+     * Les actions groupées indexées par nom, en refusant les doublons.
+     *
+     * Deux actions de même nom seraient indiscernables pour
+     * `executeBulkAction()` : la seconde ne serait jamais exécutable, en silence.
+     *
+     * @return Collection<string, BulkAction>
+     */
+    protected function resolvedBulkActions(): Collection
     {
-        $action = $this->bulkActions()->firstWhere('slug', $actionName);
+        $actions = $this->bulkActions();
+
+        $duplicates = $actions->countBy(fn (BulkAction $action) => $action->name)
+            ->filter(fn (int $count) => $count > 1)
+            ->keys();
+
+        if ($duplicates->isNotEmpty()) {
+            throw new \LogicException(sprintf(
+                'Bulk action names must be unique in %s; duplicated: %s.',
+                static::class,
+                $duplicates->implode(', ')
+            ));
+        }
+
+        return $actions->keyBy(fn (BulkAction $action) => $action->name);
+    }
+
+    public function executeBulkAction(string $name): void
+    {
+        // Un nom inconnu est une erreur de programmation (action renommée, test
+        // obsolète), pas un cas utilisateur : on échoue bruyamment plutôt que de
+        // ne rien faire en silence.
+        $action = $this->resolvedBulkActions()->get($name)
+            ?? throw new \InvalidArgumentException(sprintf('Unknown bulk action [%s] in %s.', $name, static::class));
 
         // Le bouton est grisé dans ce cas, mais un appel Livewire peut toujours
         // arriver (autre onglet, sélection changée entre-temps) : la règle
         // `disabledWhen` doit tenir côté serveur, pas seulement à l'écran.
-        if ($action && $action->isAvailableFor($this->selected)) {
+        if ($action->isAvailableFor($this->selected)) {
             $action->apply($this->selected);
         }
     }

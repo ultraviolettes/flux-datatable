@@ -86,15 +86,15 @@ it('renders one always-visible button per bulk action, without a dropdown', func
     $html = Livewire::test(BulkActionTable::class)->html();
 
     expect(bulkButton($html, 'Archive'))->not->toBe('')
-        ->and(bulkButton($html, 'Move'))->not->toBe('')
-        ->and(bulkButton($html, 'Delete'))->not->toBe('')
+        ->and(bulkButton($html, 'Move to a folder'))->not->toBe('')
+        ->and(bulkButton($html, 'Delete forever'))->not->toBe('')
         ->and($html)->not->toContain('<ui-dropdown');
 });
 
 it('disables every button, without tooltip, when nothing is selected', function () {
     $html = Livewire::test(BulkActionTable::class)->html();
 
-    foreach (['Archive', 'Move', 'Delete'] as $label) {
+    foreach (['Archive', 'Move to a folder', 'Delete forever'] as $label) {
         expect(isDisabled(bulkButton($html, $label)))->toBeTrue();
     }
 
@@ -107,7 +107,7 @@ it('enables the buttons once rows are selected and runs the action', function ()
 
     $component = Livewire::test(BulkActionTable::class)->set('selected', $ids);
 
-    foreach (['Archive', 'Move', 'Delete'] as $label) {
+    foreach (['Archive', 'Move to a folder', 'Delete forever'] as $label) {
         expect(isDisabled(bulkButton($component->html(), $label)))->toBeFalse();
     }
 
@@ -121,7 +121,7 @@ it('disables an action through disabledWhen and shows its reason', function () {
 
     $html = Livewire::test(BulkActionTable::class)->set('selected', $ids)->html();
 
-    expect(isDisabled(bulkButton($html, 'Move')))->toBeTrue()
+    expect(isDisabled(bulkButton($html, 'Move to a folder')))->toBeTrue()
         ->and(isDisabled(bulkButton($html, 'Archive')))->toBeFalse()
         ->and($html)->toMatch('/<ui-tooltip\b.*Charlie cannot be moved\./s');
 });
@@ -145,16 +145,17 @@ it('does not run an action on an empty selection', function () {
 it('applies the variant to the button', function () {
     $html = Livewire::test(BulkActionTable::class)->html();
 
-    expect(bulkButton($html, 'Delete'))->toContain('data-flux-button')
-        ->and(bulkButton($html, 'Delete'))->toContain('bg-red-500')
+    expect(bulkButton($html, 'Delete forever'))->toContain('data-flux-button')
+        ->and(bulkButton($html, 'Delete forever'))->toContain('bg-red-500')
         ->and(bulkButton($html, 'Archive'))->not->toContain('bg-red-500');
 });
 
 it('shows the custom confirmation text in the confirmation modal', function () {
-    Livewire::test(BulkActionTable::class)
-        ->assertSeeHtml('confirm-modal-delete')
+    $component = Livewire::test(BulkActionTable::class);
+
+    $component->assertSeeHtml('confirm-modal-'.$component->id().'-delete')
         ->assertSee('Deleted items stay visible in existing quotes.')
-        ->assertDontSeeHtml('confirm-modal-archive');
+        ->assertDontSeeHtml('confirm-modal-'.$component->id().'-archive');
 });
 
 it('summarises the selection next to the buttons', function () {

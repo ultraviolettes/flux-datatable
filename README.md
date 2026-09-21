@@ -431,14 +431,16 @@ use Ultraviolettes\FluxDataTable\BulkAction;
 public function bulkActions(): Collection
 {
     return collect([
-        BulkAction::make('Move to a folder')
+        BulkAction::make('move')
+            ->label('Move to a folder')
             ->icon('folder-arrow-down')
             ->disabledWhen(fn (array $selected) => Folder::containsAny($selected)
                 ? 'A folder cannot be moved into another folder. Uncheck it to continue.'
                 : null)
             ->action(fn (array $selected) => /* ... */),
 
-        BulkAction::make('Delete')
+        BulkAction::make('delete')
+            ->label(__('Delete'))
             ->variant('danger')
             ->requiresConfirmation()
             ->confirmationText('Deleted items stay visible in the quotes that use them.')
@@ -447,8 +449,22 @@ public function bulkActions(): Collection
 }
 ```
 
+`make()` takes the action's **name**: a stable identifier (letters, digits, `-`, `_`)
+that `executeBulkAction()` calls, and that tests should use. It is independent from
+the label, so renaming or translating a button never changes which action runs:
+
+```php
+Livewire::test(ItemsTable::class)
+    ->set('selected', [$id])
+    ->call('executeBulkAction', 'delete');
+```
+
+An unknown name throws instead of silently doing nothing, and two actions sharing a
+name throw at render.
+
 | Method | Effect |
 | --- | --- |
+| `label(string)` | Button text. Defaults to the name as a headline (`move-to-folder` → *Move To Folder*). |
 | `icon(string)` | Heroicon shown on the button. |
 | `variant(string)` | Flux button variant: `outline` (default), `danger` for destructive actions, `primary`, `filled`, `ghost`, `subtle`. |
 | `disabledWhen(Closure)` | Receives the selected ids and returns **the reason** the action is unavailable, or `null` when it is allowed. The reason is shown as a tooltip on the greyed-out button, and the action is refused server-side too. |
