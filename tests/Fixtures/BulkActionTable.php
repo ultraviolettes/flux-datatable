@@ -30,14 +30,16 @@ class BulkActionTable extends FluxDataTable
     public function bulkActions(): Collection
     {
         return collect([
-            BulkAction::make('Archive')->action(fn (array $ids) => static::$applied = $ids),
-            BulkAction::make('Move')
+            BulkAction::make('archive')->action(fn (array $ids) => static::$applied = $ids),
+            BulkAction::make('move')
+                ->label('Move to a folder')
                 ->icon('folder-arrow-down')
                 ->disabledWhen(fn (array $ids) => in_array((string) Item::query()->where('name', 'Charlie')->value('id'), $ids, true)
                     ? 'Charlie cannot be moved.'
                     : null)
                 ->action(fn (array $ids) => static::$applied = $ids),
-            BulkAction::make('Delete')
+            BulkAction::make('delete')
+                ->label('Delete forever')
                 ->variant('danger')
                 ->requiresConfirmation()
                 ->confirmationText('Deleted items stay visible in existing quotes.')

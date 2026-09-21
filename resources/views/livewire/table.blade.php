@@ -93,6 +93,10 @@
 
             @foreach($bulkActions as $action)
                 @php
+                    // Les noms de modale sont globaux dans la page : on les préfixe par l'id
+                    // du composant pour que deux tables ayant chacune une action `delete` ne
+                    // s'ouvrent pas la modale l'une de l'autre.
+                    $confirmModal = 'confirm-modal-' . $this->getId() . '-' . $action->name;
                     $disabledReason = $action->disabledReasonFor($selected);
                     $available = $action->isAvailableFor($selected);
                 @endphp
@@ -113,15 +117,15 @@
                     {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
                         bouton désactivé (`pointer-events-none`), le clic tomberait sur le
                         déclencheur et ouvrirait quand même la modale. --}}
-                    <flux:modal.trigger name="confirm-modal-{{ $action->slug }}">
+                    <flux:modal.trigger name="{{ $confirmModal }}">
                         <flux:button size="sm" :variant="$action->variant" :icon="$action->icon">{{ $action->label }}</flux:button>
                     </flux:modal.trigger>
                 @else
-                    <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->slug }}')">{{ $action->label }}</flux:button>
+                    <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $action->label }}</flux:button>
                 @endif
 
                 @if($action->requiresConfirmation)
-                    <flux:modal name="confirm-modal-{{ $action->slug }}" class="space-y-6 text-center">
+                    <flux:modal name="{{ $confirmModal }}" class="space-y-6 text-center">
                         <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
                             <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
                         </div>
@@ -133,7 +137,7 @@
                                 <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
                             </flux:modal.close>
                             <flux:modal.close>
-                                <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->slug }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
+                                <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->name }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
                             </flux:modal.close>
                         </div>
                     </flux:modal>

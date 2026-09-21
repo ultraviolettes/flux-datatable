@@ -8,7 +8,10 @@ class BulkAction
 {
     public bool $requiresConfirmation = false;
 
-    public string $slug;
+    /**
+     * Texte du bouton. Par défaut, dérivé du nom (`move-to-folder` → « Move To Folder »).
+     */
+    public string $label;
 
     public ?\Closure $callback = null;
 
@@ -33,14 +36,35 @@ class BulkAction
      */
     public ?\Closure $disabledWhen = null;
 
-    public function __construct(public string $label)
+    /**
+     * @param  string  $name  Identifiant stable de l'action, écrit par le développeur :
+     *                        c'est lui qu'appelle `executeBulkAction()`. Il ne dérive pas
+     *                        du libellé, pour qu'un renommage ou une traduction du bouton
+     *                        ne change pas l'action appelée.
+     */
+    public function __construct(public string $name)
     {
-        $this->slug = Str::slug($label);
+        // Le nom finit dans un `wire:click="executeBulkAction('…')"` et un nom de
+        // modale : on le restreint à ce qui y passe sans échappement.
+        if (! preg_match('/^[A-Za-z0-9_-]+$/', $name)) {
+            throw new \InvalidArgumentException(
+                "Bulk action name [{$name}] must only contain letters, digits, dashes and underscores."
+            );
+        }
+
+        $this->label = Str::headline($name);
     }
 
-    public static function make(string $label): self
+    public static function make(string $name): self
     {
-        return new self($label);
+        return new self($name);
+    }
+
+    public function label(string $label): self
+    {
+        $this->label = $label;
+
+        return $this;
     }
 
     public function action(\Closure $callback): self
