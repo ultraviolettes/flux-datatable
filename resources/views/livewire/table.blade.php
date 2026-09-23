@@ -11,9 +11,16 @@
     @endif
 
 
-    <div class="flex justify-between items-end gap-4">
+    @php
+        $toolbarActions = $this->toolbarActions();
+    @endphp
 
-        <div class="flex flex-row gap-4">
+    {{-- `flex-wrap` à chaque niveau : en colonne étroite, la barre passe à la ligne
+        au lieu de déborder, ce qui compte d'autant plus qu'elle accueille les
+        actions du consommateur. --}}
+    <div class="flex flex-wrap justify-between items-end gap-4" data-flux-datatable-toolbar>
+
+        <div class="flex flex-wrap items-end gap-4">
             @if($tableFilters)
                 <flux:modal.trigger name="filter-modal">
                     <flux:button variant="filled" icon="plus">{{ __('flux-datatable::flux-datatable.filters')  }}</flux:button>
@@ -52,7 +59,12 @@
 
         </div>
 
-        <div>
+        <div class="flex flex-wrap items-end gap-4">
+            @if($toolbarActions !== null)
+                <div class="flex flex-wrap items-center gap-2" data-flux-datatable-toolbar-actions>
+                    {{ $toolbarActions }}
+                </div>
+            @endif
 
             @if($usePagination)
                 <flux:select wire:model.live="perPage"  class="justify-self-end max-w-xs">

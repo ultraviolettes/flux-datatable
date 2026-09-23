@@ -528,6 +528,29 @@ Make sure Tailwind scans the package views:
 @source '../../vendor/ultraviolettes/flux-datatable/resources/views/**/*.blade.php';
 ```
 
+### Toolbar Actions
+
+Override `toolbarActions()` to put your own buttons in the table toolbar, on the
+right, before the per-page select (*New folder*). Return a view, or anything
+`Htmlable`; `null` (the default) renders nothing. The content is rendered inside
+the Livewire component, so a `wire:click` calls a method of your table:
+
+```php
+use Illuminate\Contracts\Support\Htmlable;
+
+public function toolbarActions(): ?Htmlable
+{
+    return view('folders.toolbar-actions');
+}
+```
+
+```blade
+{{-- resources/views/folders/toolbar-actions.blade.php --}}
+<flux:button icon="folder-plus" wire:click="createFolder">New folder</flux:button>
+```
+
+The toolbar wraps onto several lines in a narrow column instead of overflowing.
+
 ### Header Widgets
 
 `headerWidgets()` renders stat cards above the table. An aggregate shown there must
