@@ -59,15 +59,22 @@
 
         </div>
 
-        <div class="flex flex-wrap items-end gap-4">
+        {{-- Le groupe de droite reste collé au bord droit du tableau dans les deux cas
+            de passage à la ligne :
+            - `ms-auto` : quand il passe seul sous le groupe de gauche, `justify-between`
+              le mettrait en début de ligne, donc à gauche ;
+            - `justify-end` : quand il passe lui-même à la ligne, sa largeur est celle de
+              sa ligne la plus large, et ses autres lignes s'aligneraient sur son bord
+              gauche (#56). Idem pour les actions du consommateur. --}}
+        <div class="ms-auto flex flex-wrap items-end justify-end gap-4" data-flux-datatable-toolbar-end>
             @if($toolbarActions !== null)
-                <div class="flex flex-wrap items-center gap-2" data-flux-datatable-toolbar-actions>
+                <div class="flex flex-wrap items-center justify-end gap-2" data-flux-datatable-toolbar-actions>
                     {{ $toolbarActions }}
                 </div>
             @endif
 
             @if($usePagination)
-                <flux:select wire:model.live="perPage"  class="justify-self-end max-w-xs">
+                <flux:select wire:model.live="perPage"  class="max-w-xs">
                     @foreach($perPageOptions as $option)
                         <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
                     @endforeach
