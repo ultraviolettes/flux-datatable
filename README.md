@@ -469,10 +469,11 @@ name throw at render.
 
 | Method | Effect |
 | --- | --- |
-| `label(string)` | Button text. Defaults to the name as a headline (`move-to-folder` → *Move To Folder*). |
+| `label(string\|Closure)` | Button text. A closure receives the selected ids, for a label carrying a count only you know (*Add to quote (7)*). Defaults to the name as a headline (`move-to-folder` → *Move To Folder*). |
 | `icon(string)` | Heroicon shown on the button. |
-| `variant(string)` | Flux button variant: `outline` (default), `danger` for destructive actions, `primary`, `filled`, `ghost`, `subtle`. |
+| `variant(string)` | Flux button variant: `outline` (default), `primary` for the main action, `danger` for destructive actions, `filled`, `ghost`, `subtle`. `danger` is rendered as red text without background: a solid red button draws too much attention for an action rarely used. |
 | `disabledWhen(Closure)` | Receives the selected ids and returns **the reason** the action is unavailable, or `null` when it is allowed. The reason is shown as a tooltip on the greyed-out button, and the action is refused server-side too. |
+| `scopeNote(Closure)` | Receives the selected ids and returns a note on what the action really applies to (*Move only applies to the 3 files*), or `null`. The note is shown on the banner's second line and the action stays enabled. Use it when the action makes sense on part of the selection; use `disabledWhen()` when it makes none. |
 | `requiresConfirmation()` | Asks for confirmation in a modal before running. |
 | `confirmationText(string)` | Text of that modal, instead of the generic translated one. |
 | `confirmationIcon(string)` | Icon of that modal. |
@@ -483,7 +484,8 @@ arrive as strings.
 #### Selection summary
 
 The banner's first line defaults to a generic translation (*"3 items selected"*),
-its second line to an invitation to check rows when the selection is empty. Override
+its second line to an invitation to check rows when the selection is empty, then to
+the scope notes of the available actions, all of them, joined with ` · `. Override
 `selectionSummary()` and `selectionHint()` to speak your domain's language and tell
 what an action really applies to; return `null` to fall back to the default (for the
 summary) or to show nothing (for the hint):
@@ -512,7 +514,15 @@ public function selectionHint(array $selected): ?string
 
 The package sets no brand colour. The banner uses Flux's `zinc` palette, and a
 `primary` button uses your `--color-accent`: define both in your application's CSS
-theme as usual with Flux. Make sure Tailwind scans the package views:
+theme as usual with Flux.
+
+Once rows are selected, the banner carries the `dark` class, so the Flux buttons it
+holds switch to their dark rendering (an `outline` button becomes a dark button with
+a subtle border). This relies on the class-based dark variant Flux asks you to
+declare, `@custom-variant dark (&:where(.dark, .dark *));`. Without it, buttons keep
+their light rendering, still readable on the dark banner.
+
+Make sure Tailwind scans the package views:
 
 ```css
 @source '../../vendor/ultraviolettes/flux-datatable/resources/views/**/*.blade.php';

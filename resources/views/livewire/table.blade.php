@@ -105,6 +105,11 @@
                             Deux états : fond clair et actions grisées sans sélection, fond
                             foncé et actions disponibles avec. Les couleurs viennent du thème
                             Flux de l'application (`zinc`, `--color-accent`), pas du package.
+                            Actif, le bandeau porte la classe `dark` : les boutons Flux qu'il
+                            contient prennent leur rendu sombre (un `outline` devient un bouton
+                            foncé au contour discret) avec le variant `dark` par classe que
+                            Flux demande de déclarer. Les textes, eux, fixent leur couleur par
+                            état, pour rester lisibles si l'application ne le déclare pas.
 
                             Une action = un bouton toujours visible : on voit ce qu'on peut
                             faire d'une sélection sans ouvrir de menu, et chaque action peut
@@ -115,7 +120,7 @@
                             @class([
                                 'flex flex-wrap items-center gap-x-4 gap-y-3 rounded-t-lg px-3 py-3',
                                 'bg-zinc-50 dark:bg-white/5' => ! $hasSelection,
-                                'bg-zinc-900 dark:bg-zinc-950' => $hasSelection,
+                                'dark bg-zinc-900 dark:bg-zinc-950' => $hasSelection,
                             ])
                         >
                             <flux:checkbox.all />
@@ -147,60 +152,59 @@
                             </div>
 
                             <div class="flex flex-wrap items-center gap-2">
-                            @foreach($bulkActions as $action)
-                                @php
-                                    // Les noms de modale sont globaux dans la page : on les préfixe par l'id
-                                    // du composant pour que deux tables ayant chacune une action `delete` ne
-                                    // s'ouvrent pas la modale l'une de l'autre.
-                                    $confirmModal = 'confirm-modal-' . $this->getId() . '-' . $action->name;
-                                    $disabledReason = $action->disabledReasonFor($selected);
-                                    $available = $action->isAvailableFor($selected);
-                                @endphp
+                                @foreach($bulkActions as $action)
+                                    @php
+                                        $disabledReason = $action->disabledReasonFor($selected);
+                                        $available = $action->isAvailableFor($selected);
+                                        $label = $action->labelFor($selected);
+                                    @endphp
 
-                                @if(! $available)
-                                    @if($disabledReason !== null)
-                                        {{-- Un bouton désactivé ne reçoit aucun événement souris : l'infobulle
-                                            doit s'accrocher à un élément qui l'enveloppe. --}}
-                                        <flux:tooltip :content="$disabledReason">
-                                            <div>
-                                                <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
-                                            </div>
-                                        </flux:tooltip>
+                                    @if(! $available)
+                                        @if($disabledReason !== null)
+                                            {{-- Un bouton désactivé ne reçoit aucun événement souris : l'infobulle
+                                                doit s'accrocher à un élément qui l'enveloppe. --}}
+                                            <flux:tooltip :content="$disabledReason">
+                                                <div>
+                                                    <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" disabled>{{ $label }}</flux:button>
+                                                </div>
+                                            </flux:tooltip>
+                                        @else
+                                            <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" disabled>{{ $label }}</flux:button>
+                                        @endif
+                                    @elseif($action->requiresConfirmation)
+                                        {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
+                                            bouton désactivé (`pointer-events-none`), le clic tomberait sur le
+                                            déclencheur et ouvrirait quand même la modale. --}}
+                                        <flux:modal.trigger name="{{ $action->modalName($this->getId()) }}">
+                                            <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon">{{ $label }}</flux:button>
+                                        </flux:modal.trigger>
                                     @else
-                                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
+                                        <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $label }}</flux:button>
                                     @endif
-                                @elseif($action->requiresConfirmation)
-                                    {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
-                                        bouton désactivé (`pointer-events-none`), le clic tomberait sur le
-                                        déclencheur et ouvrirait quand même la modale. --}}
-                                    <flux:modal.trigger name="{{ $confirmModal }}">
-                                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon">{{ $action->label }}</flux:button>
-                                    </flux:modal.trigger>
-                                @else
-                                    <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $action->label }}</flux:button>
-                                @endif
-
-                                @if($action->requiresConfirmation)
-                                    <flux:modal name="{{ $confirmModal }}" class="space-y-6 text-center">
-                                        <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
-                                            <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
-                                        </div>
-
-                                        <flux:text>{{ $action->confirmationText ?? __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
-
-                                        <div>
-                                            <flux:modal.close>
-                                                <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
-                                            </flux:modal.close>
-                                            <flux:modal.close>
-                                                <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->name }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
-                                            </flux:modal.close>
-                                        </div>
-                                    </flux:modal>
-                                @endif
-                            @endforeach
+                                @endforeach
                             </div>
                         </div>
+
+                        {{-- Les modales de confirmation restent hors du bandeau : actif, il porte la
+                            classe `dark` et elles s'afficheraient en mode sombre. --}}
+                        @foreach($bulkActions->filter(fn ($action) => $action->requiresConfirmation) as $action)
+                            <flux:modal name="{{ $action->modalName($this->getId()) }}" class="space-y-6 text-center">
+                                <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
+                                    <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
+                                </div>
+
+                                <flux:text>{{ $action->confirmationText ?? __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
+
+                                <div>
+                                    <flux:modal.close>
+                                        <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
+                                    </flux:modal.close>
+                                    <flux:modal.close>
+                                        <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->name }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
+                                    </flux:modal.close>
+                                </div>
+                            </flux:modal>
+                        @endforeach
                     </x-slot:header>
                 @endif
 
