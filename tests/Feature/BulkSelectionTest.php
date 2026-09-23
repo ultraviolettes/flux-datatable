@@ -23,6 +23,16 @@ function bulkButton(string $html, string $label): string
     return '';
 }
 
+function xpath(string $html): DOMXPath
+{
+    $dom = new DOMDocument;
+    // Les balises Flux (`ui-checkbox`, `ui-modal`…) sont inconnues de libxml :
+    // on tait ses avertissements, l'arbre reste exploitable.
+    @$dom->loadHTML('<?xml encoding="utf-8"?>'.$html, LIBXML_NOERROR);
+
+    return new DOMXPath($dom);
+}
+
 function isDisabled(string $openingTag): bool
 {
     return (bool) preg_match('/\sdisabled[\s=>]/', $openingTag);
@@ -86,7 +96,7 @@ it('limits the selection to the current page', function () {
 it('renders one always-visible button per bulk action, without a dropdown', function () {
     $html = Livewire::test(BulkActionTable::class)->html();
 
-    expect(bulkButton($html, 'Archive'))->not->toBe('')
+    expect(bulkButton($html, 'Archive (0)'))->not->toBe('')
         ->and(bulkButton($html, 'Move to a folder'))->not->toBe('')
         ->and(bulkButton($html, 'Delete forever'))->not->toBe('')
         ->and($html)->not->toContain('<ui-dropdown');
@@ -95,7 +105,7 @@ it('renders one always-visible button per bulk action, without a dropdown', func
 it('disables every button, without tooltip, when nothing is selected', function () {
     $html = Livewire::test(BulkActionTable::class)->html();
 
-    foreach (['Archive', 'Move to a folder', 'Delete forever'] as $label) {
+    foreach (['Archive (0)', 'Move to a folder', 'Delete forever'] as $label) {
         expect(isDisabled(bulkButton($html, $label)))->toBeTrue();
     }
 
@@ -108,7 +118,7 @@ it('enables the buttons once rows are selected and runs the action', function ()
 
     $component = Livewire::test(BulkActionTable::class)->set('selected', $ids);
 
-    foreach (['Archive', 'Move to a folder', 'Delete forever'] as $label) {
+    foreach (['Archive (2)', 'Move to a folder', 'Delete forever'] as $label) {
         expect(isDisabled(bulkButton($component->html(), $label)))->toBeFalse();
     }
 
@@ -123,7 +133,7 @@ it('disables an action through disabledWhen and shows its reason', function () {
     $html = Livewire::test(BulkActionTable::class)->set('selected', $ids)->html();
 
     expect(isDisabled(bulkButton($html, 'Move to a folder')))->toBeTrue()
-        ->and(isDisabled(bulkButton($html, 'Archive')))->toBeFalse()
+        ->and(isDisabled(bulkButton($html, 'Archive (3)')))->toBeFalse()
         ->and($html)->toMatch('/<ui-tooltip\b.*Charlie cannot be moved\./s');
 });
 
@@ -146,9 +156,73 @@ it('does not run an action on an empty selection', function () {
 it('applies the variant to the button', function () {
     $html = Livewire::test(BulkActionTable::class)->html();
 
-    expect(bulkButton($html, 'Delete forever'))->toContain('data-flux-button')
-        ->and(bulkButton($html, 'Delete forever'))->toContain('bg-red-500')
-        ->and(bulkButton($html, 'Archive'))->not->toContain('bg-red-500');
+    expect(bulkButton($html, 'Archive (0)'))->toContain('bg-[var(--color-accent)]')
+        ->and(bulkButton($html, 'Move to a folder'))->toContain('bg-white')
+        ->and(bulkButton($html, 'Move to a folder'))->not->toContain('bg-[var(--color-accent)]');
+});
+
+it('renders a danger action as red text without background, not as a solid red button', function () {
+    $html = Livewire::test(BulkActionTable::class)->html();
+
+    expect(bulkButton($html, 'Delete forever'))->toContain('bg-transparent')
+        ->and(bulkButton($html, 'Delete forever'))->toContain('--color-red-700')
+        ->and(bulkButton($html, 'Delete forever'))->not->toContain('bg-red-500');
+});
+
+it('keeps a danger confirm button in the confirmation modal', function () {
+    $component = Livewire::test(BulkActionTable::class);
+
+    $confirm = xpath($component->html())->query(
+        '//dialog[@data-modal="confirm-modal-'.$component->id().'-delete"]//button[contains(., "Confirm")]'
+    );
+
+    expect($confirm->length)->toBe(1)
+        ->and($confirm->item(0)->getAttribute('class'))->toContain('bg-red-500');
+});
+
+it('switches the active banner to dark styles, but not its confirmation modals', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+    $darkBanner = '//div[@data-flux-datatable-bulk-actions][contains(concat(" ", @class, " "), " dark ")]';
+
+    $component = Livewire::test(BulkActionTable::class);
+
+    expect(xpath($component->html())->query($darkBanner)->length)->toBe(0);
+
+    $dom = xpath($component->set('selected', $ids)->html());
+
+    // Les boutons du bandeau prennent leur rendu sombre ; la modale, rendue
+    // hors du bandeau, garde le thème de la page.
+    expect($dom->query($darkBanner)->length)->toBe(1)
+        ->and($dom->query($darkBanner.'//dialog')->length)->toBe(0)
+        ->and($dom->query('//dialog[@data-modal="confirm-modal-'.$component->id().'-delete"]')->length)->toBe(1);
+});
+
+it('evaluates a closure label with the current selection', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    $component = Livewire::test(BulkActionTable::class);
+
+    expect(bulkButton($component->html(), 'Archive (0)'))->not->toBe('');
+
+    expect(bulkButton($component->set('selected', array_slice($ids, 0, 2))->html(), 'Archive (2)'))->not->toBe('');
+});
+
+it('shows a scope note in the hint line without disabling the action', function () {
+    $ids = Item::query()->whereIn('name', ['Alpha', 'Bravo'])->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    $html = Livewire::test(BulkActionTable::class)->set('selected', $ids)->html();
+
+    expect($html)->toMatch('/data-flux-datatable-selection-hint[^>]*>\s*Move only applies to files\s*</')
+        ->and(isDisabled(bulkButton($html, 'Move to a folder')))->toBeFalse();
+});
+
+it('shows no scope note for an action that is disabled', function () {
+    // Charlie grise « Move » : sa note de portée n'a plus d'objet.
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    Livewire::test(BulkActionTable::class)
+        ->set('selected', $ids)
+        ->assertDontSee('Move only applies to files');
 });
 
 it('shows the custom confirmation text in the confirmation modal', function () {

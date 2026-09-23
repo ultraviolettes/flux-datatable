@@ -391,15 +391,25 @@ class FluxDataTable extends Component
     /**
      * Seconde ligne du bandeau : une explication, ou `null` pour ne rien afficher.
      *
-     * Par défaut, invite à cocher des lignes quand la sélection est vide et se
-     * tait sinon. À surcharger pour préciser la portée réelle des actions
-     * (« Déplacer ne s'applique qu'aux 3 fichiers »).
+     * Par défaut, invite à cocher des lignes quand la sélection est vide, puis
+     * affiche les notes de portée des actions disponibles (`scopeNote()`),
+     * toutes, dans l'ordre des actions : n'en garder qu'une masquerait en
+     * silence la portée d'une autre. À surcharger pour écrire la ligne
+     * soi-même, quitte à reprendre `parent::selectionHint()`.
      *
      * @param  array<int, string>  $selected
      */
     public function selectionHint(array $selected): ?string
     {
-        return $selected === [] ? __('flux-datatable::flux-datatable.selection_hint_empty') : null;
+        if ($selected === []) {
+            return __('flux-datatable::flux-datatable.selection_hint_empty');
+        }
+
+        $notes = $this->resolvedBulkActions()
+            ->map(fn (BulkAction $action) => $action->scopeNoteFor($selected))
+            ->filter(fn (?string $note) => filled($note));
+
+        return $notes->isEmpty() ? null : $notes->implode(' · ');
     }
 
     public function executeBulkAction(string $name): void
