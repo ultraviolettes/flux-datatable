@@ -15,6 +15,7 @@ All notable changes to `:package_name` will be documented in this file.
 
 ### Fixed
 
+- The right side of the toolbar (consumer actions and per-page select) stays against the table's right edge when the toolbar wraps: `ms-auto` when it drops alone under the left side, `justify-end` when it wraps itself, and on the consumer actions block too. The no-op `justify-self-end` (a grid utility) is removed from the per-page select. #56
 - Rows no longer break under Flux 2.16+ / blaze: the row attribute bag is passed with `:attributes` instead of being spread as `{{ $rowAttributes }}` inside the `<flux:table.row>` tag, which blaze mis-compiles (attributes silently dropped, or `syntax error, unexpected token "endif"` at view compilation). The test suite now registers the Flux, Flux Pro and blaze service providers so Flux components are really rendered.
 
 ### Removed
