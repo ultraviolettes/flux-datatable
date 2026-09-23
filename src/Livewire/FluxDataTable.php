@@ -374,6 +374,34 @@ class FluxDataTable extends Component
         return $actions->keyBy(fn (BulkAction $action) => $action->name);
     }
 
+    /**
+     * Première ligne du bandeau d'actions groupées : l'état de la sélection.
+     *
+     * `null` : la traduction générique (« 3 éléments sélectionnés »). À
+     * surcharger pour parler le vocabulaire du domaine (« 3 fichiers et
+     * 1 dossier sélectionnés · 7 pièces »), que le package ne peut pas deviner.
+     *
+     * @param  array<int, string>  $selected
+     */
+    public function selectionSummary(array $selected): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Seconde ligne du bandeau : une explication, ou `null` pour ne rien afficher.
+     *
+     * Par défaut, invite à cocher des lignes quand la sélection est vide et se
+     * tait sinon. À surcharger pour préciser la portée réelle des actions
+     * (« Déplacer ne s'applique qu'aux 3 fichiers »).
+     *
+     * @param  array<int, string>  $selected
+     */
+    public function selectionHint(array $selected): ?string
+    {
+        return $selected === [] ? __('flux-datatable::flux-datatable.selection_hint_empty') : null;
+    }
+
     public function executeBulkAction(string $name): void
     {
         // Un nom inconnu est une erreur de programmation (action renommée, test

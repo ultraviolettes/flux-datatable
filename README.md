@@ -24,7 +24,7 @@ Ready-to-use, highly customizable, and easy to extend for any Laravel project.
 - ✅ **Search input** with live updates
 - ✅ **Header widgets** whose aggregates stay in sync with the filtered table
 - ✅ **Multi-value filters** with a default selection
-- ✅ **Bulk actions** as always-visible buttons, conditionally disabled with a reason
+- ✅ **Bulk actions** in a banner at the head of the table, with a selection summary you can write yourself
 
 ---
 
@@ -419,10 +419,15 @@ public function updatingSearch()
 
 ### Bulk Actions
 
-Override `bulkActions()` to add a checkbox column and a bar of buttons above the
-table. Each action is its own button, always visible, next to a selection summary
-(*"3 items selected"*). The header checkbox selects every row **of the current page**;
-the selection never outlives a page, filter, search or sort change.
+Override `bulkActions()` to add a checkbox column and a banner at the head of the
+table, between the toolbar and the column headers. The banner holds, from left to
+right, the "select all" checkbox, a two-line selection summary and the action
+buttons, each always visible. It has two states: a light background with every
+action disabled while nothing is selected, a dark one with the actions available
+once rows are checked (`data-state="idle"` / `data-state="active"`).
+
+The "select all" checkbox selects every row **of the current page**; the selection
+never outlives a page, filter, search or sort change.
 
 ```php
 use Illuminate\Support\Collection;
@@ -474,6 +479,44 @@ name throw at render.
 
 With nothing selected, every button is disabled, without a tooltip. Selected ids
 arrive as strings.
+
+#### Selection summary
+
+The banner's first line defaults to a generic translation (*"3 items selected"*),
+its second line to an invitation to check rows when the selection is empty. Override
+`selectionSummary()` and `selectionHint()` to speak your domain's language and tell
+what an action really applies to; return `null` to fall back to the default (for the
+summary) or to show nothing (for the hint):
+
+```php
+public function selectionSummary(array $selected): ?string
+{
+    if ($selected === []) {
+        return null;
+    }
+
+    [$files, $folders] = $this->countByType($selected);
+
+    return "{$files} files and {$folders} folder selected · {$this->pieceCount($selected)} parts";
+}
+
+public function selectionHint(array $selected): ?string
+{
+    return $this->containsFolder($selected)
+        ? 'Move only applies to the files'
+        : parent::selectionHint($selected);
+}
+```
+
+#### Colours
+
+The package sets no brand colour. The banner uses Flux's `zinc` palette, and a
+`primary` button uses your `--color-accent`: define both in your application's CSS
+theme as usual with Flux. Make sure Tailwind scans the package views:
+
+```css
+@source '../../vendor/ultraviolettes/flux-datatable/resources/views/**/*.blade.php';
+```
 
 ### Header Widgets
 
