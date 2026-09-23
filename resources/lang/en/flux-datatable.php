@@ -2,6 +2,7 @@
 
 return [
     'selection_summary' => '{0} No item selected|{1} 1 item selected|[2,*] :count items selected',
+    'selection_hint_empty' => 'Check rows to act on several items at once',
     'bulk_action_text' => 'Are you sure you would like to do this ?',
     'cancel' => 'Cancel',
     'confirm' => 'Confirm',

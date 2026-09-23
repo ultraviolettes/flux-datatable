@@ -3,6 +3,7 @@
 use Livewire\Livewire;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\BulkActionTable;
 use Ultraviolettes\FluxDataTable\Tests\Fixtures\Item;
+use Ultraviolettes\FluxDataTable\Tests\Fixtures\SummarizedBulkActionTable;
 
 /**
  * La balise ouvrante du bouton d'action groupée portant ce libellé.
@@ -167,4 +168,75 @@ it('summarises the selection next to the buttons', function () {
         ->assertSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 1))
         ->set('selected', $ids)
         ->assertSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 3, ['count' => 3]));
+});
+
+/**
+ * Le bandeau d'actions groupées, de sa balise ouvrante à la fin du tableau.
+ */
+function bulkBanner(string $html): string
+{
+    preg_match('/<div\b[^>]*data-flux-datatable-bulk-actions.*<\/table>/s', $html, $matches);
+
+    return $matches[0] ?? '';
+}
+
+function bannerState(string $html): ?string
+{
+    preg_match('/<div\b[^>]*data-flux-datatable-bulk-actions[^>]*data-state="(\w+)"/', $html, $matches);
+
+    return $matches[1] ?? null;
+}
+
+it('renders the banner at the head of the table, inside the checkbox group, above the scroll area', function () {
+    $html = Livewire::test(BulkActionTable::class)->html();
+
+    // Dans le groupe : sinon la case « tout sélectionner » ne remonte plus la
+    // sélection (#44). Avant la zone de défilement : le bandeau garde la largeur
+    // du tableau quand celui-ci défile horizontalement.
+    expect($html)->toMatch('/<ui-checkbox-group\b[^>]*>.*data-flux-datatable-bulk-actions.*<ui-table-scroll-area\b.*<\/ui-checkbox-group>/s');
+});
+
+it('moves the "select all" checkbox from the header column into the banner', function () {
+    $html = Livewire::test(BulkActionTable::class)->html();
+
+    expect(bulkBanner($html))->toMatch('/data-flux-datatable-bulk-actions.*<ui-checkbox\b[^>]*\ball="all".*<ui-table-scroll-area/s')
+        ->and(preg_match_all('/<ui-checkbox\b[^>]*\ball="all"/', $html))->toBe(1);
+});
+
+it('switches the banner from idle to active with the selection', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    $component = Livewire::test(BulkActionTable::class);
+
+    expect(bannerState($component->html()))->toBe('idle');
+
+    $component->set('selected', array_slice($ids, 0, 1));
+
+    expect(bannerState($component->html()))->toBe('active');
+
+    $component->set('selected', []);
+
+    expect(bannerState($component->html()))->toBe('idle');
+});
+
+it('invites to check rows while nothing is selected, and says nothing more afterwards', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    Livewire::test(BulkActionTable::class)
+        ->assertSeeHtml('data-flux-datatable-selection-hint')
+        ->assertSee(__('flux-datatable::flux-datatable.selection_hint_empty'))
+        ->set('selected', $ids)
+        ->assertDontSeeHtml('data-flux-datatable-selection-hint');
+});
+
+it('lets the consumer write the summary and the hint', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+    Livewire::test(SummarizedBulkActionTable::class)
+        // `null` : la traduction générique reprend la main.
+        ->assertSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 0))
+        ->set('selected', $ids)
+        ->assertSee('3 files selected · 7 parts')
+        ->assertSee('Move only applies to files')
+        ->assertDontSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 3, ['count' => 3]));
 });

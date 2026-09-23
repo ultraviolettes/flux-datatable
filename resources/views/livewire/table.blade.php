@@ -82,70 +82,6 @@
     @endif
 
 
-    @if($bulkActions->isNotEmpty())
-        {{-- Une action = un bouton toujours visible : on voit ce qu'on peut faire d'une
-            sélection sans ouvrir de menu, et chaque action peut être grisée pour sa
-            propre raison (`disabledWhen`). --}}
-        <div class="mb-4 flex flex-wrap items-center gap-3" data-flux-datatable-bulk-actions>
-            <flux:text data-flux-datatable-selection-summary>
-                {{ trans_choice('flux-datatable::flux-datatable.selection_summary', count($selected), ['count' => count($selected)]) }}
-            </flux:text>
-
-            @foreach($bulkActions as $action)
-                @php
-                    // Les noms de modale sont globaux dans la page : on les préfixe par l'id
-                    // du composant pour que deux tables ayant chacune une action `delete` ne
-                    // s'ouvrent pas la modale l'une de l'autre.
-                    $confirmModal = 'confirm-modal-' . $this->getId() . '-' . $action->name;
-                    $disabledReason = $action->disabledReasonFor($selected);
-                    $available = $action->isAvailableFor($selected);
-                @endphp
-
-                @if(! $available)
-                    @if($disabledReason !== null)
-                        {{-- Un bouton désactivé ne reçoit aucun événement souris : l'infobulle
-                            doit s'accrocher à un élément qui l'enveloppe. --}}
-                        <flux:tooltip :content="$disabledReason">
-                            <div>
-                                <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
-                            </div>
-                        </flux:tooltip>
-                    @else
-                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
-                    @endif
-                @elseif($action->requiresConfirmation)
-                    {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
-                        bouton désactivé (`pointer-events-none`), le clic tomberait sur le
-                        déclencheur et ouvrirait quand même la modale. --}}
-                    <flux:modal.trigger name="{{ $confirmModal }}">
-                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon">{{ $action->label }}</flux:button>
-                    </flux:modal.trigger>
-                @else
-                    <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $action->label }}</flux:button>
-                @endif
-
-                @if($action->requiresConfirmation)
-                    <flux:modal name="{{ $confirmModal }}" class="space-y-6 text-center">
-                        <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
-                            <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
-                        </div>
-
-                        <flux:text>{{ $action->confirmationText ?? __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
-
-                        <div>
-                            <flux:modal.close>
-                                <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
-                            </flux:modal.close>
-                            <flux:modal.close>
-                                <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->name }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
-                            </flux:modal.close>
-                        </div>
-                    </flux:modal>
-                @endif
-            @endforeach
-        </div>
-    @endif
-
     <!-- Table View -->
     <div x-show="viewMode === 'table'">
         {{-- La sélection passe par le `wire:model` du groupe, pas par un `wire:click` par
@@ -154,11 +90,125 @@
             laissait `$selected` vide (#44). --}}
         <flux:checkbox.group wire:model.live="selected">
             <flux:table :paginate="$usePagination ? $this->records : null">
+                @if($bulkActions->isNotEmpty())
+                    <x-slot:header>
+                        @php
+                            $hasSelection = $selected !== [];
+                            $selectionHint = $this->selectionHint($selected);
+                        @endphp
+                        {{-- Bandeau collé en tête du tableau, dans le slot `header` de
+                            `flux:table` : il reste dans le `flux:checkbox.group` (la case
+                            « tout sélectionner » doit y vivre pour remonter la sélection,
+                            #44) et hors de la zone de défilement, donc à la largeur du
+                            tableau même quand celui-ci défile horizontalement.
+
+                            Deux états : fond clair et actions grisées sans sélection, fond
+                            foncé et actions disponibles avec. Les couleurs viennent du thème
+                            Flux de l'application (`zinc`, `--color-accent`), pas du package.
+
+                            Une action = un bouton toujours visible : on voit ce qu'on peut
+                            faire d'une sélection sans ouvrir de menu, et chaque action peut
+                            être grisée pour sa propre raison (`disabledWhen`). --}}
+                        <div
+                            data-flux-datatable-bulk-actions
+                            data-state="{{ $hasSelection ? 'active' : 'idle' }}"
+                            @class([
+                                'flex flex-wrap items-center gap-x-4 gap-y-3 rounded-t-lg px-3 py-3',
+                                'bg-zinc-50 dark:bg-white/5' => ! $hasSelection,
+                                'bg-zinc-900 dark:bg-zinc-950' => $hasSelection,
+                            ])
+                        >
+                            <flux:checkbox.all />
+
+                            <div class="min-w-0 flex-1">
+                                <div
+                                    data-flux-datatable-selection-summary
+                                    @class([
+                                        'text-sm font-medium',
+                                        'text-zinc-800 dark:text-white' => ! $hasSelection,
+                                        'text-white' => $hasSelection,
+                                    ])
+                                >
+                                    {{ $this->selectionSummary($selected) ?? trans_choice('flux-datatable::flux-datatable.selection_summary', count($selected), ['count' => count($selected)]) }}
+                                </div>
+
+                                @if($selectionHint !== null)
+                                    <div
+                                        data-flux-datatable-selection-hint
+                                        @class([
+                                            'text-xs',
+                                            'text-zinc-500 dark:text-zinc-400' => ! $hasSelection,
+                                            'text-zinc-300' => $hasSelection,
+                                        ])
+                                    >
+                                        {{ $selectionHint }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2">
+                            @foreach($bulkActions as $action)
+                                @php
+                                    // Les noms de modale sont globaux dans la page : on les préfixe par l'id
+                                    // du composant pour que deux tables ayant chacune une action `delete` ne
+                                    // s'ouvrent pas la modale l'une de l'autre.
+                                    $confirmModal = 'confirm-modal-' . $this->getId() . '-' . $action->name;
+                                    $disabledReason = $action->disabledReasonFor($selected);
+                                    $available = $action->isAvailableFor($selected);
+                                @endphp
+
+                                @if(! $available)
+                                    @if($disabledReason !== null)
+                                        {{-- Un bouton désactivé ne reçoit aucun événement souris : l'infobulle
+                                            doit s'accrocher à un élément qui l'enveloppe. --}}
+                                        <flux:tooltip :content="$disabledReason">
+                                            <div>
+                                                <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
+                                            </div>
+                                        </flux:tooltip>
+                                    @else
+                                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" disabled>{{ $action->label }}</flux:button>
+                                    @endif
+                                @elseif($action->requiresConfirmation)
+                                    {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
+                                        bouton désactivé (`pointer-events-none`), le clic tomberait sur le
+                                        déclencheur et ouvrirait quand même la modale. --}}
+                                    <flux:modal.trigger name="{{ $confirmModal }}">
+                                        <flux:button size="sm" :variant="$action->variant" :icon="$action->icon">{{ $action->label }}</flux:button>
+                                    </flux:modal.trigger>
+                                @else
+                                    <flux:button size="sm" :variant="$action->variant" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $action->label }}</flux:button>
+                                @endif
+
+                                @if($action->requiresConfirmation)
+                                    <flux:modal name="{{ $confirmModal }}" class="space-y-6 text-center">
+                                        <div class="inline-flex justify-center mx-auto bg-red-100 rounded-full p-4">
+                                            <flux:icon :name="$action->confirmationIcon" class="text-red-500"/>
+                                        </div>
+
+                                        <flux:text>{{ $action->confirmationText ?? __('flux-datatable::flux-datatable.bulk_action_text') }}</flux:text>
+
+                                        <div>
+                                            <flux:modal.close>
+                                                <flux:button variant="ghost">{{ __('flux-datatable::flux-datatable.cancel') }}</flux:button>
+                                            </flux:modal.close>
+                                            <flux:modal.close>
+                                                <flux:button :variant="$action->variant === 'danger' ? 'danger' : 'primary'" wire:click="executeBulkAction('{{ $action->name }}')">{{ __('flux-datatable::flux-datatable.confirm') }}</flux:button>
+                                            </flux:modal.close>
+                                        </div>
+                                    </flux:modal>
+                                @endif
+                            @endforeach
+                            </div>
+                        </div>
+                    </x-slot:header>
+                @endif
+
                 <flux:table.columns>
                     @if(count($bulkActions) > 0)
-                        <flux:table.column class="w-10">
-                            <flux:checkbox.all />
-                        </flux:table.column>
+                        {{-- La case « tout sélectionner » est dans le bandeau : la colonne
+                            reste pour aligner les en-têtes sur les cases des lignes. --}}
+                        <flux:table.column class="w-10" />
                     @endif
                     @foreach ($columns as $index => $col)
                         @php

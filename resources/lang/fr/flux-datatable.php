@@ -2,6 +2,7 @@
 
 return [
     'selection_summary' => '{0} Aucun élément sélectionné|{1} 1 élément sélectionné|[2,*] :count éléments sélectionnés',
+    'selection_hint_empty' => 'Cochez des lignes pour agir sur plusieurs éléments',
     'bulk_action_text' => 'Êtes-vous sûr de vouloir faire cela ?',
     'cancel' => 'Annuler',
     'confirm' => 'Confirmer',
