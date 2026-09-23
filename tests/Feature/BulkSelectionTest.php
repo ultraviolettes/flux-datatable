@@ -314,3 +314,34 @@ it('lets the consumer write the summary and the hint', function () {
         ->assertSee('Move only applies to files')
         ->assertDontSee(trans_choice('flux-datatable::flux-datatable.selection_summary', 3, ['count' => 3]));
 });
+
+it('marks each button with its action name and declared variant, for consumer styling', function () {
+    $dom = xpath(Livewire::test(BulkActionTable::class)->html());
+
+    $variantOf = fn (string $name) => $dom->query('//button[@data-flux-datatable-bulk-action="'.$name.'"]')
+        ->item(0)?->getAttribute('data-variant');
+
+    // La variante déclarée, pas celle que rend Flux : `danger` et non `ghost`.
+    expect($variantOf('archive'))->toBe('primary')
+        ->and($variantOf('move'))->toBe('outline')
+        ->and($variantOf('delete'))->toBe('danger');
+});
+
+it('spaces the banner buttons so neighbouring actions do not read as one block', function () {
+    $dom = xpath(Livewire::test(BulkActionTable::class)->html());
+
+    $container = $dom->query('//button[@data-flux-datatable-bulk-action="archive"]/parent::div')->item(0);
+
+    expect(explode(' ', $container->getAttribute('class')))->toContain('gap-3')->not->toContain('gap-2');
+});
+
+it('lightens outline buttons on the active banner only', function () {
+    $ids = Item::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+    $veil = '[&_[data-variant=outline]]:bg-white/14';
+    $bannerClass = fn (string $html) => xpath($html)->query('//div[@data-flux-datatable-bulk-actions]')->item(0)->getAttribute('class');
+
+    $component = Livewire::test(BulkActionTable::class);
+
+    expect($bannerClass($component->html()))->not->toContain($veil)
+        ->and($bannerClass($component->set('selected', $ids)->html()))->toContain($veil);
+});

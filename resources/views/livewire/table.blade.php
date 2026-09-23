@@ -125,9 +125,9 @@
                             foncé et actions disponibles avec. Les couleurs viennent du thème
                             Flux de l'application (`zinc`, `--color-accent`), pas du package.
                             Actif, le bandeau porte la classe `dark` : les boutons Flux qu'il
-                            contient prennent leur rendu sombre (un `outline` devient un bouton
-                            foncé au contour discret) avec le variant `dark` par classe que
-                            Flux demande de déclarer. Les textes, eux, fixent leur couleur par
+                            contient prennent leur rendu sombre (texte blanc, et un `outline`
+                            reçoit en plus un voile blanc, voir plus bas) avec le variant `dark`
+                            par classe que Flux demande de déclarer. Les textes, eux, fixent leur couleur par
                             état, pour rester lisibles si l'application ne le déclare pas.
 
                             Une action = un bouton toujours visible : on voit ce qu'on peut
@@ -140,6 +140,11 @@
                                 'flex flex-wrap items-center gap-x-4 gap-y-3 rounded-t-lg px-3 py-3',
                                 'bg-zinc-50 dark:bg-white/5' => ! $hasSelection,
                                 'dark bg-zinc-900 dark:bg-zinc-950' => $hasSelection,
+                                // Le rendu sombre Flux d'un `outline` (fond `zinc-700`) se détache à
+                                // peine du bandeau : un voile blanc se lit nettement mieux. Posé sur
+                                // le bandeau pour que le sélecteur (classe + attribut) l'emporte sur
+                                // les utilitaires du bouton, survol compris.
+                                '[&_[data-variant=outline]]:bg-white/14 [&_[data-variant=outline]]:border-white/25 [&_[data-variant=outline]:hover]:bg-white/20' => $hasSelection,
                             ])
                         >
                             <flux:checkbox.all />
@@ -170,7 +175,13 @@
                                 @endif
                             </div>
 
-                            <div class="flex flex-wrap items-center gap-2">
+                            {{-- `gap-3` : à 8px, une action principale et une secondaire voisines se
+                                lisaient comme un seul bloc (#58).
+
+                                Chaque bouton porte le nom de son action et la variante déclarée
+                                (`data-flux-datatable-bulk-action`, `data-variant`) : un consommateur
+                                peut le styliser sans s'accrocher aux classes internes de Flux. --}}
+                            <div class="flex flex-wrap items-center gap-3">
                                 @foreach($bulkActions as $action)
                                     @php
                                         $disabledReason = $action->disabledReasonFor($selected);
@@ -184,21 +195,21 @@
                                                 doit s'accrocher à un élément qui l'enveloppe. --}}
                                             <flux:tooltip :content="$disabledReason">
                                                 <div>
-                                                    <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" disabled>{{ $label }}</flux:button>
+                                                    <flux:button size="sm" :data-flux-datatable-bulk-action="$action->name" :data-variant="$action->variant" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" disabled>{{ $label }}</flux:button>
                                                 </div>
                                             </flux:tooltip>
                                         @else
-                                            <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" disabled>{{ $label }}</flux:button>
+                                            <flux:button size="sm" :data-flux-datatable-bulk-action="$action->name" :data-variant="$action->variant" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" disabled>{{ $label }}</flux:button>
                                         @endif
                                     @elseif($action->requiresConfirmation)
                                         {{-- Le déclencheur n'est rendu que si l'action est disponible : autour d'un
                                             bouton désactivé (`pointer-events-none`), le clic tomberait sur le
                                             déclencheur et ouvrirait quand même la modale. --}}
                                         <flux:modal.trigger name="{{ $action->modalName($this->getId()) }}">
-                                            <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon">{{ $label }}</flux:button>
+                                            <flux:button size="sm" :data-flux-datatable-bulk-action="$action->name" :data-variant="$action->variant" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon">{{ $label }}</flux:button>
                                         </flux:modal.trigger>
                                     @else
-                                        <flux:button size="sm" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $label }}</flux:button>
+                                        <flux:button size="sm" :data-flux-datatable-bulk-action="$action->name" :data-variant="$action->variant" :variant="$action->buttonVariant()" :color="$action->buttonColor()" :icon="$action->icon" wire:click="executeBulkAction('{{ $action->name }}')">{{ $label }}</flux:button>
                                     @endif
                                 @endforeach
                             </div>

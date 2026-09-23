@@ -522,6 +522,24 @@ a subtle border). This relies on the class-based dark variant Flux asks you to
 declare, `@custom-variant dark (&:where(.dark, .dark *));`. Without it, buttons keep
 their light rendering, still readable on the dark banner.
 
+On the dark banner, `outline` buttons get a white veil (`white/14` background,
+`white/25` border) rather than Flux's `zinc-700`, which barely stands out from it.
+
+Each button carries its action's name and **declared** variant, so you can style it
+without relying on Flux's internal classes:
+
+```html
+<button data-flux-datatable-bulk-action="move" data-variant="outline" …>
+```
+
+```css
+[data-flux-datatable-bulk-actions][data-state='active'] [data-variant='outline'] { … }
+[data-flux-datatable-bulk-action='delete'] { … }
+```
+
+`data-variant` is the variant given to `variant()`: a `danger` action reads
+`danger`, even though Flux renders it as a `ghost` button.
+
 Make sure Tailwind scans the package views:
 
 ```css
