@@ -2,6 +2,7 @@
 
 namespace Ultraviolettes\FluxDataTable\Livewire;
 
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -372,6 +373,26 @@ class FluxDataTable extends Component
         }
 
         return $actions->keyBy(fn (BulkAction $action) => $action->name);
+    }
+
+    /**
+     * Actions du consommateur dans la barre d'outils, à droite, avant le
+     * sélecteur de pagination (« Nouveau dossier »). `null` : rien.
+     *
+     * Une méthode plutôt qu'un slot : le composant est monté par
+     * `<livewire:…>`, pas par un composant Blade. Le contenu est rendu dans
+     * le composant, un `wire:click` y appelle donc une méthode de la table.
+     *
+     * ```php
+     * public function toolbarActions(): ?Htmlable
+     * {
+     *     return view('folders.toolbar-actions');
+     * }
+     * ```
+     */
+    public function toolbarActions(): ?Htmlable
+    {
+        return null;
     }
 
     /**
